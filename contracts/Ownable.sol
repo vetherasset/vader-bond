@@ -3,7 +3,7 @@ pragma solidity 0.7.6;
 
 contract Ownable {
     event OwnerNominated(address newOwner);
-    event OwnerChanged(address oldOwner, address newOwner);
+    event OwnerChanged(address newOwner);
 
     address public owner;
     address public nominatedOwner;
@@ -25,10 +25,9 @@ contract Ownable {
     function acceptOwnership() external {
         require(msg.sender == nominatedOwner, "not nominated");
 
-        // Log before updates
-        emit OwnerChanged(owner, nominatedOwner);
-
         owner = nominatedOwner;
         nominatedOwner = address(0);
+
+        emit OwnerChanged(owner);
     }
 }
