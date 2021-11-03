@@ -166,8 +166,10 @@ contract VaderBond is Ownable {
         uint value = treasury.valueOfToken(address(principalToken), _amount);
         uint payout = payoutFor(value); // payout to bonder is computed
 
-        require(payout >= 10**PAYOUT_TOKEN_DECIMALS / 100, "Bond too small"); // must be > 0.01 payout token ( underflow protection )
-        require(payout <= maxPayout(), "Bond too large"); // size protection because there is no slippage
+        // must be > 0.01 payout token ( underflow protection )
+        require(payout >= 10**PAYOUT_TOKEN_DECIMALS / 100, "Bond too small");
+        // size protection because there is no slippage
+        require(payout <= maxPayout(), "Bond too large");
 
         principalToken.safeTransferFrom(msg.sender, address(this), _amount);
         principalToken.approve(address(treasury), _amount);
