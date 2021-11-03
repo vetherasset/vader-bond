@@ -173,19 +173,23 @@ contract VaderBond is Ownable {
         principalToken.approve(address(treasury), _amount);
         treasury.deposit(address(principalToken), _amount, payout);
 
-        // total debt is increased
         totalDebt = totalDebt.add(value);
 
-        // depositor info is stored
         bondInfo[_depositor] = Bond({
             payout: bondInfo[_depositor].payout.add(payout),
             vesting: terms.vestingTerm,
             lastBlock: block.number
         });
 
-        // indexed events are emitted
         emit BondCreated(_amount, payout, block.number.add(terms.vestingTerm));
-        emit BondPriceChanged(_bondPrice(), debtRatio());
+
+        uint price = bondPrice();
+        // remove floor if price above min
+        if (price > terms.minPrice && terms.minPrice > 0) {
+            terms.minPrice = 0;
+        }
+
+        emit BondPriceChanged(price, debtRatio());
 
         adjust(); // control variable is adjusted
         return payout;
@@ -285,20 +289,6 @@ contract VaderBond is Ownable {
             FixedPoint
                 .fraction(currentDebt().mul(10**PAYOUT_TOKEN_DECIMALS), payoutToken.totalSupply())
                 .decode112with18() / 1e18;
-    }
-
-    /**
-     *  @notice calculate current bond price and remove floor if above
-     *  @return price uint
-     */
-    function _bondPrice() private returns (uint price) {
-        price = terms.controlVariable.mul(debtRatio()) / 10**(PAYOUT_TOKEN_DECIMALS - 5);
-        if (price < terms.minPrice) {
-            price = terms.minPrice;
-        } else if (terms.minPrice != 0) {
-            // TODO: why remove floor?
-            terms.minPrice = 0;
-        }
     }
 
     /**
