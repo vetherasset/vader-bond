@@ -26,6 +26,11 @@ contract Treasury is Ownable, ITreasury {
         PAYOUT_TOKEN_DECIMALS = IERC20Metadata(_payoutToken).decimals();
     }
 
+    modifier onlyBondContract() {
+        require(isBondContract[msg.sender], "not bond");
+        _;
+    }
+
     /**
      *  @notice deposit principal token and recieve back payout token
      *  @param _principalToken address
@@ -36,8 +41,7 @@ contract Treasury is Ownable, ITreasury {
         address _principalToken,
         uint _principalAmount,
         uint _payoutAmount
-    ) external override {
-        require(isBondContract[msg.sender], "not bond");
+    ) external override onlyBondContract {
         IERC20(_principalToken).safeTransferFrom(msg.sender, address(this), _principalAmount);
         IERC20(payoutToken).safeTransfer(msg.sender, _payoutAmount);
     }
