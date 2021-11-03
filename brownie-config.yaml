@@ -3,13 +3,13 @@ hypothesis:
 
 # require OpenZepplin Contracts
 dependencies:
-  - OpenZeppelin/openzeppelin-contracts@4.3.2
+  - OpenZeppelin/openzeppelin-contracts@3.4.2
 
 # path remapping to support OpenZepplin imports with NPM-style path
 compiler:
   solc:
     remappings:
-      - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.3.2"
+      - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@3.4.2"
 
 reports:
   exclude_paths:

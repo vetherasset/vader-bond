@@ -10,7 +10,7 @@ source venv/bin/activate
 
 pip install eth-brownie
 
-brownie pm install OpenZeppelin/openzeppelin-contracts@4.3.2
+brownie pm install OpenZeppelin/openzeppelin-contracts@3.4.2
 
 npm i
 ```
@@ -24,9 +24,11 @@ brownie test tests/path-to-test-file-or-folder
 ### Misc
 
 ```shell
+pip3 install solc-select
+
 # select solc compiler
-solc-select install 0.8.9
-solc-select use 0.8.9
+solc-select install 0.7.6
+solc-select use 0.7.6
 
 # check code size (max 2457 bytes)
 brownie compile -s
