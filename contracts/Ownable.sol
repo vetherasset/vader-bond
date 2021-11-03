@@ -2,19 +2,33 @@
 pragma solidity 0.7.6;
 
 contract Ownable {
+    event OwnerNominated(address newOwner);
+    event OwnerChanged(address oldOwner, address newOwner);
+
     address public owner;
+    address public nominatedOwner;
 
     constructor() {
         owner = msg.sender;
     }
 
     modifier onlyOwner() {
-        require(owner == msg.sender, "Ownable: caller is not the owner");
+        require(msg.sender == owner, "not owner");
         _;
     }
 
-    function transferManagment(address _newOwner) external onlyOwner {
-        require(_newOwner != address(0));
-        owner = _newOwner;
+    function nominateNewOwner(address _owner) external onlyOwner {
+        nominatedOwner = _owner;
+        emit OwnerNominated(_owner);
+    }
+
+    function acceptOwnership() external {
+        require(msg.sender == nominatedOwner, "not nominated");
+
+        // Log before updates
+        emit OwnerChanged(owner, nominatedOwner);
+
+        owner = nominatedOwner;
+        nominatedOwner = address(0);
     }
 }
