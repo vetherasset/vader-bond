@@ -5,9 +5,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./interfaces/IERC20Metadata.sol";
+import "./interfaces/ITreasury.sol";
 import "./Ownable.sol";
 
-contract Treasury is Ownable {
+contract Treasury is Ownable, ITreasury {
     using SafeERC20 for IERC20;
     using SafeMath for uint;
 
@@ -35,7 +36,7 @@ contract Treasury is Ownable {
         address _principalToken,
         uint _principalAmount,
         uint _payoutAmount
-    ) external {
+    ) external override {
         require(isBondContract[msg.sender], "not bond");
         IERC20(_principalToken).safeTransferFrom(msg.sender, address(this), _principalAmount);
         IERC20(payoutToken).safeTransfer(msg.sender, _payoutAmount);
@@ -47,7 +48,7 @@ contract Treasury is Ownable {
      *   @param _amount uint
      *   @return value uint
      */
-    function valueOfToken(address _principalToken, uint _amount) external view returns (uint value) {
+    function valueOfToken(address _principalToken, uint _amount) external view override returns (uint value) {
         // convert amount to match payout token decimals
         value = _amount.mul(10**PAYOUT_TOKEN_DECIMALS).div(10**IERC20Metadata(_principalToken).decimals());
     }
