@@ -4,12 +4,13 @@ pragma solidity 0.7.6;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./interfaces/IERC20Metadata.sol";
 import "./interfaces/ITreasury.sol";
 import "./lib/FixedPoint.sol";
 import "./Ownable.sol";
 
-contract VaderBond is Ownable {
+contract VaderBond is Ownable, ReentrancyGuard {
     using FixedPoint for FixedPoint.uq112x112;
     using SafeERC20 for IERC20;
     using SafeMath for uint;
@@ -156,7 +157,7 @@ contract VaderBond is Ownable {
         uint _amount,
         uint _maxPrice,
         address _depositor
-    ) external returns (uint) {
+    ) external nonReentrant returns (uint) {
         require(_depositor != address(0), "Invalid address");
 
         decayDebt();
@@ -201,7 +202,7 @@ contract VaderBond is Ownable {
      *  @notice redeem bond for user
      *  @return uint
      */
-    function redeem(address _depositor) external returns (uint) {
+    function redeem(address _depositor) external nonReentrant returns (uint) {
         Bond memory info = bondInfo[_depositor];
         uint percentVested = percentVestedFor(_depositor); // (blocks since last interaction / vesting term remaining)
 
