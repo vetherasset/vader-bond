@@ -60,11 +60,11 @@ contract VaderBond is Ownable, ReentrancyGuard {
         address _payoutToken,
         address _principalToken
     ) {
-        require(_treasury != address(0));
+        require(_treasury != address(0), "treasury = zero address");
         treasury = ITreasury(_treasury);
-        require(_payoutToken != address(0));
+        require(_payoutToken != address(0), "payout token = zero address");
         payoutToken = IERC20(_payoutToken);
-        require(_principalToken != address(0));
+        require(_principalToken != address(0), "principal token = zero address");
         principalToken = IERC20(_principalToken);
     }
 
@@ -158,7 +158,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
         uint _maxPrice,
         address _depositor
     ) external nonReentrant returns (uint) {
-        require(_depositor != address(0), "Invalid address");
+        require(_depositor != address(0), "Invalid depositor address");
 
         decayDebt();
         require(totalDebt <= terms.maxDebt, "Max capacity reached");
