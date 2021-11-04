@@ -7,11 +7,11 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./interfaces/IERC20Metadata.sol";
 import "./interfaces/ITreasury.sol";
-import "./lib/FixedPoint.sol";
+// import "./lib/FixedPoint.sol";
 import "./Ownable.sol";
 
 contract VaderBond is Ownable, ReentrancyGuard {
-    using FixedPoint for FixedPoint.uq112x112;
+    // using FixedPoint for FixedPoint.uq112x112;
     using SafeERC20 for IERC20;
     using SafeMath for uint;
 
@@ -20,6 +20,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
     event BondPriceChanged(uint internalPrice, uint debtRatio);
     event ControlVariableAdjustment(uint initialBCV, uint newBCV, uint adjustment, bool addition);
 
+    uint8 private immutable PRINCIPAL_TOKEN_DECIMALS;
     uint8 private constant PAYOUT_TOKEN_DECIMALS = 18; // Vader has 18 decimals
     uint private constant MIN_PAYOUT = 10**PAYOUT_TOKEN_DECIMALS / 100; // 0.01
     uint private constant MAX_PERCENT_VESTED = 1e4; // 1 = 0.01%, 10000 = 100%
@@ -71,6 +72,8 @@ contract VaderBond is Ownable, ReentrancyGuard {
         payoutToken = IERC20(_payoutToken);
         require(_principalToken != address(0), "");
         principalToken = IERC20(_principalToken);
+
+        PRINCIPAL_TOKEN_DECIMALS = IERC20Metadata(_principalToken).decimals();
     }
 
     /**
@@ -291,11 +294,13 @@ contract VaderBond is Ownable, ReentrancyGuard {
      *  @return uint
      */
     function debtRatio() public view returns (uint) {
-        // NOTE: debt ratio is scaled up by 10 ** decimals
-        return
-            FixedPoint
-                .fraction(currentDebt().mul(10**PAYOUT_TOKEN_DECIMALS), payoutToken.totalSupply())
-                .decode112with18() / 1e18;
+        // TODO: use fraction?
+        // return
+        //     FixedPoint
+        //         .fraction(currentDebt().mul(10**PAYOUT_TOKEN_DECIMALS), payoutToken.totalSupply())
+        //         .decode112with18() / 1e18;
+        // NOTE: debt ratio is scaled up by 1e18
+        return currentDebt().mul(1e18).div(payoutToken.totalSupply());
     }
 
     /**
@@ -303,9 +308,9 @@ contract VaderBond is Ownable, ReentrancyGuard {
      *  @return price uint
      */
     function bondPrice() public view returns (uint price) {
-        // TODO: scale
-        // NOTE: debt ratio is scaled up by 10 ** decimals
-        price = terms.controlVariable.mul(debtRatio()) / 10**PAYOUT_TOKEN_DECIMALS;
+        // NOTE: bond price scaled to principal token decimals
+        // NOTE: debt ratio scaled up with 1e18, so we divide here
+        price = terms.controlVariable.mul(debtRatio()).mul(10**PRINCIPAL_TOKEN_DECIMALS) / 1e18;
         if (price < terms.minPrice) {
             price = terms.minPrice;
         }
@@ -325,9 +330,20 @@ contract VaderBond is Ownable, ReentrancyGuard {
      *  @return uint
      */
     function payoutFor(uint _value) public view returns (uint) {
-        // TODO: scale
+        // TODO: use fraction?
         // NOTE: scaled up by 1e7
-        return FixedPoint.fraction(_value, bondPrice()).decode112with18() / 1e11;
+        // return FixedPoint.fraction(_value, bondPrice()).decode112with18() / 1e11;
+
+        /*
+        B = amount of bond to payout
+        A = amount of principal token in
+        P = amount of principal token to pay to get 1 bond
+
+        B = A / P
+        */
+        // NOTE: value must match payout token decimals
+        // NOTE: bond price matches principal token decimals
+        return _value.mul(10**PRINCIPAL_TOKEN_DECIMALS).div(bondPrice());
     }
 
     /**
