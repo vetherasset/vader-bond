@@ -299,9 +299,8 @@ contract VaderBond is Ownable, ReentrancyGuard {
      *  @return price uint
      */
     function bondPrice() public view returns (uint price) {
-        // TODO: why decimals - 5 ? remove?
         // NOTE: debt ratio is scaled up by 10 ** decimals
-        price = terms.controlVariable.mul(debtRatio()) / 10**(PAYOUT_TOKEN_DECIMALS - 5);
+        price = terms.controlVariable.mul(debtRatio()) / 10**PAYOUT_TOKEN_DECIMALS;
         if (price < terms.minPrice) {
             price = terms.minPrice;
         }
