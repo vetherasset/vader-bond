@@ -20,9 +20,10 @@ contract VaderBond is Ownable, ReentrancyGuard {
     event BondPriceChanged(uint internalPrice, uint debtRatio);
     event ControlVariableAdjustment(uint initialBCV, uint newBCV, uint adjustment, bool addition);
 
-    uint private constant MAX_PERCENT_VESTED = 10000; // 1 = 0.01%, 10000 = 100%
     uint8 private constant PAYOUT_TOKEN_DECIMALS = 18; // Vader has 18 decimals
     uint private constant MIN_PAYOUT = 10**PAYOUT_TOKEN_DECIMALS / 100; // 0.01
+    uint private constant MAX_PERCENT_VESTED = 1e4; // 1 = 0.01%, 10000 = 100%
+    uint private constant MAX_PAYOUT_DENOM = 1e5; // 100 = 0.1%, 100000 = 100%
 
     IERC20 public immutable payoutToken; // token paid for principal
     IERC20 public immutable principalToken; // inflow token
@@ -119,7 +120,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
             terms.vestingTerm = _input;
         } else if (_parameter == PARAMETER.PAYOUT) {
             // 1
-            require(_input <= 1000, "Payout cannot be above 1 percent");
+            require(_input <= MAX_PAYOUT_DENOM / 100, "Payout cannot be above 1 percent");
             terms.maxPayout = _input;
         } else if (_parameter == PARAMETER.DEBT) {
             // 2
@@ -315,8 +316,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
      *  @return uint
      */
     function maxPayout() public view returns (uint) {
-        // TODO: scale
-        return payoutToken.totalSupply().mul(terms.maxPayout) / 1e5;
+        return payoutToken.totalSupply().mul(terms.maxPayout) / MAX_PAYOUT_DENOM;
     }
 
     /**
