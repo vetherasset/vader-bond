@@ -13,6 +13,7 @@ pip install eth-brownie
 brownie pm install OpenZeppelin/openzeppelin-contracts@3.4.2
 
 npm i
+npm i -g ganache-cli
 ```
 
 ### Test
