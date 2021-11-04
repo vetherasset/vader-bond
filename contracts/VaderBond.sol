@@ -19,6 +19,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
     event BondRedeemed(address indexed recipient, uint payout, uint remaining);
     event BondPriceChanged(uint internalPrice, uint debtRatio);
     event ControlVariableAdjustment(uint initialBCV, uint newBCV, uint adjustment, bool addition);
+    event TreasuryChanged(address treasury);
 
     uint8 private immutable PRINCIPAL_TOKEN_DECIMALS;
     uint8 private constant PAYOUT_TOKEN_DECIMALS = 18; // Vader has 18 decimals
@@ -28,7 +29,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
 
     IERC20 public immutable payoutToken; // token paid for principal
     IERC20 public immutable principalToken; // inflow token
-    ITreasury public immutable treasury; // pays for and receives principal
+    ITreasury public treasury; // pays for and receives principal
 
     Terms public terms; // stores terms for new bonds
     Adjust public adjustment; // stores adjustment to BCV data
@@ -377,7 +378,19 @@ contract VaderBond is Ownable, ReentrancyGuard {
     }
 
     /**
+     *  @notice owner can update treasury address
+     *  @param _treasury address
+     *  @dev allow new treasury to be zero address
+     */
+    function setTreasury(address _treasury) external onlyOwner {
+        require(_treasury != address(treasury), "no change");
+        treasury = ITreasury(_treasury);
+        emit TreasuryChanged(_treasury);
+    }
+
+    /**
      *  @notice allows owner to send lost tokens to owner
+     *  @param _token address
      */
     function recoverLostToken(address _token) external onlyOwner {
         IERC20(_token).safeTransfer(owner, IERC20(_token).balanceOf(address(this)));
