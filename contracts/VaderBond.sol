@@ -22,7 +22,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
 
     uint private constant MAX_PERCENT_VESTED = 10000; // 1 = 0.01%, 10000 = 100%
     uint8 private constant PAYOUT_TOKEN_DECIMALS = 18; // Vader has 18 decimals
-    uint private constant MIN_PAYOUT = 10 ** PAYOUT_TOKEN_DECIMALS / 100 // 0.01
+    uint private constant MIN_PAYOUT = 10**PAYOUT_TOKEN_DECIMALS / 100; // 0.01
 
     IERC20 public immutable payoutToken; // token paid for principal
     IERC20 public immutable principalToken; // inflow token
@@ -302,6 +302,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
      *  @return price uint
      */
     function bondPrice() public view returns (uint price) {
+        // TODO: scale
         // NOTE: debt ratio is scaled up by 10 ** decimals
         price = terms.controlVariable.mul(debtRatio()) / 10**PAYOUT_TOKEN_DECIMALS;
         if (price < terms.minPrice) {
@@ -314,6 +315,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
      *  @return uint
      */
     function maxPayout() public view returns (uint) {
+        // TODO: scale
         return payoutToken.totalSupply().mul(terms.maxPayout) / 1e5;
     }
 
@@ -359,11 +361,9 @@ contract VaderBond is Ownable, ReentrancyGuard {
     }
 
     /**
-     *  @notice allows owner to send lost tokens (excluding principal and payout token) to owner
+     *  @notice allows owner to send lost tokens to owner
      */
     function recoverLostToken(address _token) external onlyOwner {
-        require(_token != address(payoutToken), "protected token");
-        require(_token != address(principalToken), "protected token");
         IERC20(_token).safeTransfer(owner, IERC20(_token).balanceOf(address(this)));
     }
 }
