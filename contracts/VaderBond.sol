@@ -67,11 +67,11 @@ contract VaderBond is Ownable, ReentrancyGuard {
         address _payoutToken,
         address _principalToken
     ) {
-        require(_treasury != address(0), "treasury = zero address");
+        require(_treasury != address(0), "treasury = zero");
         treasury = ITreasury(_treasury);
-        require(_payoutToken != address(0), "payout token = zero address");
+        require(_payoutToken != address(0), "payout token = zero");
         payoutToken = IERC20(_payoutToken);
-        require(_principalToken != address(0), "");
+        require(_principalToken != address(0), "principal token = zero");
         principalToken = IERC20(_principalToken);
 
         PRINCIPAL_TOKEN_DECIMALS = IERC20Metadata(_principalToken).decimals();

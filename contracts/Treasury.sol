@@ -21,7 +21,7 @@ contract Treasury is Ownable, ITreasury {
     mapping(address => bool) public isBondContract;
 
     constructor(address _payoutToken) {
-        require(_payoutToken != address(0), "payout token = zero address");
+        require(_payoutToken != address(0), "payout token = zero");
         payoutToken = _payoutToken;
         PAYOUT_TOKEN_DECIMALS = IERC20Metadata(_payoutToken).decimals();
     }
