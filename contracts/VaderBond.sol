@@ -22,13 +22,17 @@ contract VaderBond is Ownable, ReentrancyGuard {
 
     uint private constant MAX_PERCENT_VESTED = 10000; // 1 = 0.01%, 10000 = 100%
     uint8 private constant PAYOUT_TOKEN_DECIMALS = 18; // Vader has 18 decimals
+    uint private constant MIN_PAYOUT = 10 ** PAYOUT_TOKEN_DECIMALS / 100 // 0.01
 
     IERC20 public immutable payoutToken; // token paid for principal
     IERC20 public immutable principalToken; // inflow token
     ITreasury public immutable treasury; // pays for and receives principal
+
     Terms public terms; // stores terms for new bonds
     Adjust public adjustment; // stores adjustment to BCV data
+
     mapping(address => Bond) public bondInfo; // stores bond information for depositors
+
     uint public totalDebt; // total value of outstanding bonds; used for pricing
     uint public lastDecay; // reference block for debt decay
 
@@ -64,7 +68,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
         treasury = ITreasury(_treasury);
         require(_payoutToken != address(0), "payout token = zero address");
         payoutToken = IERC20(_payoutToken);
-        require(_principalToken != address(0), "principal token = zero address");
+        require(_principalToken != address(0), "");
         principalToken = IERC20(_principalToken);
     }
 
@@ -158,7 +162,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
         uint _maxPrice,
         address _depositor
     ) external nonReentrant returns (uint) {
-        require(_depositor != address(0), "Invalid depositor address");
+        require(_depositor != address(0), "Invalid address");
 
         decayDebt();
         require(totalDebt <= terms.maxDebt, "Max capacity reached");
@@ -167,8 +171,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
         uint value = treasury.valueOfToken(address(principalToken), _amount);
         uint payout = payoutFor(value); // payout to bonder is computed
 
-        // must be > 0.01 payout token ( underflow protection )
-        require(payout >= 10**PAYOUT_TOKEN_DECIMALS / 100, "Bond too small");
+        require(payout >= MIN_PAYOUT, "Bond too small");
         // size protection because there is no slippage
         require(payout <= maxPayout(), "Bond too large");
 
@@ -320,6 +323,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
      *  @return uint
      */
     function payoutFor(uint _value) public view returns (uint) {
+        // TODO: scale
         // NOTE: scaled up by 1e7
         return FixedPoint.fraction(_value, bondPrice()).decode112with18() / 1e11;
     }
