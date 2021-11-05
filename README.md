@@ -19,7 +19,7 @@ npm i -g ganache-cli
 ### Test
 
 ```shell
-brownie test tests/path-to-test-file-or-folder
+brownie test tests/path-to-test-file-or-folder -s -v
 ```
 
 ### Misc

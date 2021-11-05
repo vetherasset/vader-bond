@@ -1,5 +1,5 @@
 import pytest
-from brownie import accounts, Ownable, Treasury, TestToken
+from brownie import accounts, Ownable, Treasury, VaderBond, TestToken
 
 
 @pytest.fixture(scope="session")
@@ -26,6 +26,11 @@ def ownable(deployer):
 @pytest.fixture(scope="module")
 def treasury(deployer, payoutToken):
     yield Treasury.deploy(payoutToken, {"from": deployer})
+
+
+@pytest.fixture(scope="module")
+def bond(deployer, treasury, payoutToken, principalToken):
+    yield VaderBond.deploy(treasury, payoutToken, principalToken, {"from": deployer})
 
 
 # test contracts

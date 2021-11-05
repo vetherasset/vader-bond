@@ -3,7 +3,7 @@ from brownie import Treasury, ZERO_ADDRESS
 
 
 def test_constructor(deployer, payoutToken):
-    with brownie.reverts("payout token = zero address"):
+    with brownie.reverts("payout token = zero"):
         Treasury.deploy(ZERO_ADDRESS, {"from": deployer})
 
     treasury = Treasury.deploy(payoutToken, {"from": deployer})

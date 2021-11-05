@@ -94,7 +94,14 @@ contract VaderBond is Ownable, ReentrancyGuard {
         uint _maxDebt,
         uint _initialDebt
     ) external onlyOwner {
-        require(currentDebt() == 0, "debt != 0");
+        require(terms.controlVariable == 0, "initialized");
+
+        require(_controlVariable > 0, "cv = 0");
+        // roughly 36 hours (262 blocks / hour)
+        require(_vestingTerm >= 10000, "vesting < 10000");
+        // max payout must be < 1% of total supply of payout token
+        require(_maxPayout <= MAX_PAYOUT_DENOM / 100, "max payout > 1%");
+
         terms = Terms({
             controlVariable: _controlVariable,
             vestingTerm: _vestingTerm,
@@ -102,6 +109,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
             maxPayout: _maxPayout,
             maxDebt: _maxDebt
         });
+
         totalDebt = _initialDebt;
         lastDecay = block.number;
     }
@@ -114,45 +122,38 @@ contract VaderBond is Ownable, ReentrancyGuard {
 
     /**
      *  @notice set parameters for new bonds
-     *  @param _parameter PARAMETER
+     *  @param _param PARAMETER
      *  @param _input uint
      */
-    function setBondTerms(PARAMETER _parameter, uint _input) external onlyOwner {
-        if (_parameter == PARAMETER.VESTING) {
-            // 0
-            require(_input >= 10000, "Vesting must be longer than 36 hours");
+    function setBondTerms(PARAMETER _param, uint _input) external onlyOwner {
+        if (_param == PARAMETER.VESTING) {
+            // roughly 36 hours (262 blocks / hour)
+            require(_input >= 10000, "vesting < 10000");
             terms.vestingTerm = _input;
-        } else if (_parameter == PARAMETER.PAYOUT) {
-            // 1
-            require(_input <= MAX_PAYOUT_DENOM / 100, "Payout cannot be above 1 percent");
+        } else if (_param == PARAMETER.PAYOUT) {
+            // max payout must be < 1% of total supply of payout token
+            require(_input <= MAX_PAYOUT_DENOM / 100, "max payout > 1%");
             terms.maxPayout = _input;
-        } else if (_parameter == PARAMETER.DEBT) {
-            // 2
+        } else if (_param == PARAMETER.DEBT) {
             terms.maxDebt = _input;
         }
     }
 
     /**
      *  @notice set control variable adjustment
-     *  @param _addition bool
-     *  @param _increment uint
+     *  @param _add bool
+     *  @param _rate uint
      *  @param _target uint
      *  @param _buffer uint
      */
     function setAdjustment(
-        bool _addition,
-        uint _increment,
+        bool _add,
+        uint _rate,
         uint _target,
         uint _buffer
     ) external onlyOwner {
-        require(_increment <= terms.controlVariable.mul(30) / 1000, "Increment too large");
-        adjustment = Adjust({
-            add: _addition,
-            rate: _increment,
-            target: _target,
-            buffer: _buffer,
-            lastBlock: block.number
-        });
+        require(_rate <= terms.controlVariable.mul(3) / 100, "rate > 3%");
+        adjustment = Adjust({add: _add, rate: _rate, target: _target, buffer: _buffer, lastBlock: block.number});
     }
 
     /**
@@ -167,18 +168,18 @@ contract VaderBond is Ownable, ReentrancyGuard {
         uint _maxPrice,
         address _depositor
     ) external nonReentrant returns (uint) {
-        require(_depositor != address(0), "Invalid address");
+        require(_depositor != address(0), "depositor = zero");
 
         decayDebt();
-        require(totalDebt <= terms.maxDebt, "Max capacity reached");
-        require(_maxPrice >= bondPrice(), "Slippage limit: more than max price");
+        require(totalDebt <= terms.maxDebt, "max debt");
+        require(_maxPrice >= bondPrice(), "bond price > max");
 
         uint value = treasury.valueOfToken(address(principalToken), _amount);
-        uint payout = payoutFor(value); // payout to bonder is computed
+        uint payout = payoutFor(value);
 
-        require(payout >= MIN_PAYOUT, "Bond too small");
+        require(payout >= MIN_PAYOUT, "payout < min");
         // size protection because there is no slippage
-        require(payout <= maxPayout(), "Bond too large");
+        require(payout <= maxPayout(), "payout > max");
 
         principalToken.safeTransferFrom(msg.sender, address(this), _amount);
         principalToken.approve(address(treasury), _amount);
@@ -301,6 +302,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
         //         .fraction(currentDebt().mul(10**PAYOUT_TOKEN_DECIMALS), payoutToken.totalSupply())
         //         .decode112with18() / 1e18;
         // NOTE: debt ratio is scaled up by 1e18
+        // NOTE: fails if payoutToken.totalSupply() == 0
         return currentDebt().mul(1e18).div(payoutToken.totalSupply());
     }
 
@@ -393,6 +395,8 @@ contract VaderBond is Ownable, ReentrancyGuard {
      *  @param _token address
      */
     function recoverLostToken(address _token) external onlyOwner {
+        require(_token != address(principalToken), "protected");
+        require(_token != address(payoutToken), "protected");
         IERC20(_token).safeTransfer(owner, IERC20(_token).balanceOf(address(this)));
     }
 }
