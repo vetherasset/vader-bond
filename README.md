@@ -26,10 +26,10 @@ brownie test tests/path-to-test-file-or-folder -s -v
 
 ### Simulation
 
-Increasing bond price
+##### Increasing bond price
 ![bond-price-inc](./doc/bond-price-inc.png)
 
-Decreasing bond price
+##### Decreasing bond price
 ![bond-price-dec](./doc/bond-price-dec.png)
 
 ### Misc
