@@ -24,6 +24,14 @@ npm i -g ganache-cli
 brownie test tests/path-to-test-file-or-folder -s -v
 ```
 
+### Simulation
+
+Increasing bond price
+![bond-price-inc](./doc/bond-price-inc.png)
+
+Decreasing bond price
+![bond-price-dec](./doc/bond-price-dec.png)
+
 ### Misc
 
 ```shell
