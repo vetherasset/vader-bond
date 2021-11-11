@@ -153,6 +153,11 @@ contract VaderBond is Ownable, ReentrancyGuard {
         uint _buffer
     ) external onlyOwner {
         require(_rate <= terms.controlVariable.mul(3) / 100, "rate > 3%");
+        if (_add) {
+            require(_target >= terms.controlVariable, "target < cv");
+        } else {
+            require(_target <= terms.controlVariable, "target > cv");
+        }
         adjustment = Adjust({add: _add, rate: _rate, target: _target, buffer: _buffer, lastBlock: block.number});
     }
 
@@ -239,6 +244,14 @@ contract VaderBond is Ownable, ReentrancyGuard {
         }
     }
 
+    function min(uint x, uint y) private returns (uint) {
+        return x <= y ? x : y;
+    }
+
+    function max(uint x, uint y) private returns (uint) {
+        return x >= y ? x : y;
+    }
+
     /**
      *  @notice makes incremental adjustment to control variable
      */
@@ -247,12 +260,12 @@ contract VaderBond is Ownable, ReentrancyGuard {
         if (adjustment.rate != 0 && block.number >= blockCanAdjust) {
             uint initial = terms.controlVariable;
             if (adjustment.add) {
-                terms.controlVariable = terms.controlVariable.add(adjustment.rate);
+                terms.controlVariable = min(terms.controlVariable.add(adjustment.rate), adjustment.target);
                 if (terms.controlVariable >= adjustment.target) {
                     adjustment.rate = 0;
                 }
             } else {
-                terms.controlVariable = terms.controlVariable.sub(adjustment.rate);
+                terms.controlVariable = max(terms.controlVariable.sub(adjustment.rate), adjustment.target);
                 if (terms.controlVariable <= adjustment.target) {
                     adjustment.rate = 0;
                 }

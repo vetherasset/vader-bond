@@ -129,6 +129,24 @@ def test_set_adjustment(deployer, user, bond):
             {"from": deployer},
         )
 
+    with brownie.reverts("target < cv"):
+        bond.setAdjustment(
+            ADD,
+            RATE,
+            bond.terms()["controlVariable"] - 1,
+            BUFFER,
+            {"from": deployer},
+        )
+
+    with brownie.reverts("target > cv"):
+        bond.setAdjustment(
+            not ADD,
+            RATE,
+            bond.terms()["controlVariable"] + 1,
+            BUFFER,
+            {"from": deployer},
+        )
+
     bond.setAdjustment(
         ADD,
         RATE,
