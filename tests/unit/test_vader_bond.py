@@ -110,6 +110,41 @@ def test_initialize_bond(deployer, user, bond):
         )
 
 
+def test_bond_terms(chain, deployer, user, bond):
+    with brownie.reverts("not owner"):
+        bond.setBondTerms(0, 0, {"from": user})
+
+    # test vesting terms
+    with brownie.reverts("vesting < 10000"):
+        bond.setBondTerms(0, 9999, {"from": deployer})
+
+    chain.snapshot()
+    tx = bond.setBondTerms(0, VESTING_TERM + 1, {"from": deployer})
+    assert bond.terms()["vestingTerm"] == VESTING_TERM + 1
+    assert tx.events["SetBondTerms"].values() == [0, VESTING_TERM + 1]
+    # undo changes for other tests
+    chain.revert()
+
+    # test max payout
+    with brownie.reverts("max payout > 1%"):
+        bond.setBondTerms(1, 1e3 + 1, {"from": deployer})
+
+    chain.snapshot()
+    tx = bond.setBondTerms(1, MAX_PAYOUT - 1, {"from": deployer})
+    assert bond.terms()["maxPayout"] == MAX_PAYOUT - 1
+    assert tx.events["SetBondTerms"].values() == [1, MAX_PAYOUT - 1]
+    # undo changes for other tests
+    chain.revert()
+
+    # test max debt
+    chain.snapshot()
+    tx = bond.setBondTerms(2, MAX_DEBT - 1, {"from": deployer})
+    assert bond.terms()["maxDebt"] == MAX_DEBT - 1
+    assert tx.events["SetBondTerms"].values() == [2, MAX_DEBT - 1]
+    # undo changes for other tests
+    chain.revert()
+
+
 def test_set_adjustment(deployer, user, bond):
     with brownie.reverts("not owner"):
         bond.setAdjustment(
@@ -147,13 +182,15 @@ def test_set_adjustment(deployer, user, bond):
             {"from": deployer},
         )
 
-    bond.setAdjustment(
+    tx = bond.setAdjustment(
         ADD,
         RATE,
         TARGET,
         BUFFER,
         {"from": deployer},
     )
+
+    assert tx.events["SetAdjustment"].values() == [ADD, RATE, TARGET, BUFFER]
 
     adj = bond.adjustment()
     assert adj["add"] == ADD
