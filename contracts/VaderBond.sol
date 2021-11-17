@@ -104,7 +104,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
     ) external onlyOwner {
         require(terms.controlVariable == 0, "initialized");
 
-        require(_controlVariable != 0, "cv = 0");
+        require(_controlVariable > 0, "cv = 0");
         // roughly 36 hours (262 blocks / hour)
         require(_vestingTerm >= 10000, "vesting < 10000");
         // max payout must be < 1% of total supply of payout token
@@ -206,7 +206,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
 
         uint price = bondPrice();
         // remove floor if price above min
-        if (price > terms.minPrice && terms.minPrice != 0) {
+        if (price > terms.minPrice && terms.minPrice > 0) {
             terms.minPrice = 0;
         }
 
@@ -261,7 +261,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
      */
     function adjust() private {
         uint blockCanAdjust = adjustment.lastBlock.add(adjustment.buffer);
-        if (adjustment.rate != 0 && block.number >= blockCanAdjust) {
+        if (adjustment.rate > 0 && block.number >= blockCanAdjust) {
             uint initial = terms.controlVariable;
             if (adjustment.add) {
                 terms.controlVariable = min(terms.controlVariable.add(adjustment.rate), adjustment.target);
@@ -375,7 +375,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
         Bond memory bond = bondInfo[_depositor];
         uint blocksSinceLast = block.number.sub(bond.lastBlock);
         uint vesting = bond.vesting;
-        if (vesting != 0) {
+        if (vesting > 0) {
             percentVested = blocksSinceLast.mul(MAX_PERCENT_VESTED).div(vesting);
         }
         // default percentVested = 0
