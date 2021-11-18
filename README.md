@@ -16,6 +16,8 @@ brownie pm install OpenZeppelin/openzeppelin-contracts@3.4.2
 
 npm i
 npm i -g ganache-cli
+
+cp .env.sample .env
 ```
 
 ### Test
@@ -23,6 +25,20 @@ npm i -g ganache-cli
 ```shell
 brownie test tests/path-to-test-file-or-folder -s -v
 ```
+
+### Deploy
+```shell
+brownie run scripts/deploy_treasury.py --network kovan
+brownie run scripts/deploy_bond.py --network kovan
+```
+
+### Simulation
+
+##### Increasing bond price
+![bond-price-inc](./doc/bond-price-inc.png)
+
+##### Decreasing bond price
+![bond-price-dec](./doc/bond-price-dec.png)
 
 ### Misc
 

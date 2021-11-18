@@ -33,7 +33,6 @@ def test(chain, deployer, user, bond, treasury, principalToken, payoutToken):
         {"from": deployer},
     )
 
-    # TODO: use adjusment
     bond.setAdjustment(
         ADD,
         RATE,
@@ -72,14 +71,15 @@ def test(chain, deployer, user, bond, treasury, principalToken, payoutToken):
         print("--- deposit ---")
         for i in range(10):
             snapshot()
-            bond.deposit(1000 * 1e6, max_price, user, {"from": user})
+            bond.deposit(10000 * 1e6, max_price, user, {"from": user})
             block += 1
 
         print("--- wait ---")
         for i in range(10):
-            chain.mine(100)
+            wait = 10
+            chain.mine(wait)
+            block += wait
             snapshot()
-            block += 100
 
     plt.plot(blocks, prices, label="price")
     plt.plot(blocks, debt_ratios, label="debt ratio")
