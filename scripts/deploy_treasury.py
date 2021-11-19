@@ -1,6 +1,6 @@
 from brownie import Treasury, accounts
 
-VADER = "0x237E9d2F4d4834fD3fCB0ECdeE912682F5D24984"
+VADER = "0x78CE3ba64Da9D241757603A914b30D992f36Ff24"
 
 
 def main():
