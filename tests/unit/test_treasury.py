@@ -67,6 +67,9 @@ def test_withdraw(deployer, treasury, principalToken, user, dest):
     with brownie.reverts("not owner"):
         treasury.withdraw(principalToken, dest, 123, {"from": user})
 
+    with brownie.reverts("dest = zero address"):
+        treasury.withdraw(principalToken, ZERO_ADDRESS, 123, {"from": deployer})
+
     def snapshot():
         return {
             "principalToken": {

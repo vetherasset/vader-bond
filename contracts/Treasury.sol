@@ -71,6 +71,7 @@ contract Treasury is Ownable, ITreasury {
         address _destination,
         uint _amount
     ) external onlyOwner {
+        require(_destination != address(0), "dest = zero address");
         IERC20(_token).safeTransfer(_destination, _amount);
         emit Withdraw(_token, _destination, _amount);
     }
