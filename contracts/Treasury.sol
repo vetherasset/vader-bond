@@ -50,7 +50,7 @@ contract Treasury is Ownable, ITreasury {
     }
 
     /**
-     *   @notice returns payout token valuation of priciple
+     *   @notice returns payout token valuation of principle
      *   @param _principalToken address
      *   @param _amount uint
      *   @return value uint
