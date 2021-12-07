@@ -188,7 +188,6 @@ contract VaderBond is Ownable, ReentrancyGuard {
         uint payout = payoutFor(value);
 
         require(payout >= MIN_PAYOUT, "payout < min");
-        // size protection because there is no slippage
         require(payout <= maxPayout(), "payout > max");
 
         principalToken.safeTransferFrom(msg.sender, address(this), _amount);
@@ -213,7 +212,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
 
         emit BondPriceChanged(price, debtRatio());
 
-        adjust(); // control variable is adjusted
+        adjust();
         return payout;
     }
 
@@ -223,20 +222,16 @@ contract VaderBond is Ownable, ReentrancyGuard {
      */
     function redeem(address _depositor) external nonReentrant returns (uint) {
         Bond memory info = bondInfo[_depositor];
-        uint percentVested = percentVestedFor(_depositor); // (blocks since last interaction / vesting term remaining)
+        uint percentVested = percentVestedFor(_depositor);
 
         if (percentVested >= MAX_PERCENT_VESTED) {
-            // if fully vested
-            delete bondInfo[_depositor]; // delete user info
-            emit BondRedeemed(_depositor, info.payout, 0); // emit bond data
+            delete bondInfo[_depositor];
+            emit BondRedeemed(_depositor, info.payout, 0);
             payoutToken.transfer(_depositor, info.payout);
             return info.payout;
         } else {
-            // if unfinished
-            // calculate payout vested
             uint payout = info.payout.mul(percentVested) / MAX_PERCENT_VESTED;
 
-            // store updated deposit info
             bondInfo[_depositor] = Bond({
                 payout: info.payout.sub(payout),
                 vesting: info.vesting.sub(block.number.sub(info.lastBlock)),
@@ -372,7 +367,6 @@ contract VaderBond is Ownable, ReentrancyGuard {
         if (vesting > 0) {
             percentVested = blocksSinceLast.mul(MAX_PERCENT_VESTED).div(vesting);
         }
-        // default percentVested = 0
     }
 
     /**
