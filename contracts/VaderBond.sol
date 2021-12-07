@@ -258,20 +258,21 @@ contract VaderBond is Ownable, ReentrancyGuard {
     function adjust() private {
         uint blockCanAdjust = adjustment.lastBlock.add(adjustment.buffer);
         if (adjustment.rate > 0 && block.number >= blockCanAdjust) {
-            uint initial = terms.controlVariable;
+            uint cv = terms.controlVariable;
+            uint target = adjustment.target;
             if (adjustment.add) {
-                terms.controlVariable = min(terms.controlVariable.add(adjustment.rate), adjustment.target);
-                if (terms.controlVariable >= adjustment.target) {
+                terms.controlVariable = min(cv.add(adjustment.rate), target);
+                if (terms.controlVariable >= target) {
                     adjustment.rate = 0;
                 }
             } else {
-                terms.controlVariable = max(terms.controlVariable.sub(adjustment.rate), adjustment.target);
-                if (terms.controlVariable <= adjustment.target) {
+                terms.controlVariable = max(cv.sub(adjustment.rate), target);
+                if (terms.controlVariable <= target) {
                     adjustment.rate = 0;
                 }
             }
             adjustment.lastBlock = block.number;
-            emit ControlVariableAdjustment(initial, terms.controlVariable, adjustment.rate, adjustment.add);
+            emit ControlVariableAdjustment(cv, terms.controlVariable, adjustment.rate, adjustment.add);
         }
     }
 
