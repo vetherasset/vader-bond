@@ -44,7 +44,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
 
     mapping(address => Bond) public bondInfo; // stores bond information for depositors
 
-    uint public totalDebt; // total value of outstanding bonds; used for pricing
+    uint public totalDebt; // total value of outstanding bonds
     uint public lastDecay; // reference block for debt decay
 
     // Info for creating new bonds
@@ -327,7 +327,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
     /**
      *  @notice calculate current bond premium
      *  @return price uint
-     *  @dev price = 10 ** principal token decimals = 1 principal token buys 1 bond
+     *  @dev price = 2 * 10 ** principal token decimals = 2 principal token to buy 1 bond
      */
     function bondPrice() public view returns (uint price) {
         // NOTE: debt ratio scaled up with 1e18, so divide by 1e18
@@ -355,15 +355,8 @@ contract VaderBond is Ownable, ReentrancyGuard {
         // NOTE: scaled up by 1e7
         // return FixedPoint.fraction(_value, bondPrice()).decode112with18() / 1e11;
 
-        /*
-        B = amount of bond to payout
-        A = amount of principal token in
-        P = amount of principal token to pay to get 1 bond
-
-        B = A / P
-        */
-        // NOTE: decimals of value must match payout token decimals
-        // NOTE: bond price must match principal token decimals
+        // NOTE: decimals of value must have payout token decimals
+        // NOTE: bond price must have principal token decimals
         return _value.mul(10**PRINCIPAL_TOKEN_DECIMALS).div(bondPrice());
     }
 
