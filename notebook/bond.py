@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[2]:
 
 
 from datetime import datetime
@@ -149,15 +149,16 @@ class Bond:
         return payout
 
 
-# In[17]:
+# In[74]:
 
 
 BLOCKS_PER_HOUR = 270
 VADER_TOTAL_SUPPLY = (25 * 10 ** 9) * 10 ** DECIMALS
+SALE = 10 ** 7 * 10 ** DECIMALS
 
 LP_PRICE_USD = 23.29
 VADER_PRICE_USD = 0.03
-DISCOUNT = 1.2
+DISCOUNT = 0.9
 
 # --- min price ---
 # amount of VADER to receive per LP
@@ -168,7 +169,7 @@ x = 1 / v * DISCOUNT
 min_price = x * 10 ** PRINCIPAL_DECIMALS
 
 # --- control variable ---
-D = 10 ** 6
+D = 1000
 control_variable = min_price * (VADER_TOTAL_SUPPLY / (10 ** DECIMALS)) / D
 
 # --- vesting terms ---
@@ -201,7 +202,7 @@ adj = {
 print(terms)
 
 
-# In[19]:
+# In[86]:
 
 
 block = Block()
@@ -228,6 +229,7 @@ total_debts = []
 # num blocks
 N = 1000
 market_price = min_price
+sold = 0
 for i in range(N):
     amount = 0
     payout = 0
@@ -240,9 +242,9 @@ for i in range(N):
     else:
         market_price *= 0.99
 
-    # market_price = min_price
+    market_price = min_price
     
-    if random() > 0.5 and b.bond_price() <= 1.1 * market_price:
+    if sold < SALE and random() > 0.9 and b.bond_price() <= 1.1 * market_price:
         r = random()
         amount = r * 1000 * 10 ** PRINCIPAL_DECIMALS
         value = treasury.value_of_token(amount)
@@ -253,7 +255,8 @@ for i in range(N):
             amount = 0
             block.inc(1)
         else:
-            payout = b.deposit(amount)            
+            payout = b.deposit(amount)
+            sold += payout
     else:
         block.inc(1)
     
@@ -266,6 +269,12 @@ for i in range(N):
 
 xs = [i for i in range(N)]
 
+total_payouts = []
+total_payout = 0
+for p in payouts:
+    total_payout += p
+    total_payouts.append(total_payout)
+
 def sample(s):
     n = len(prices)
     if s <= 0:
@@ -273,7 +282,7 @@ def sample(s):
 
     _s = n / s
     
-    print("--- block | price | amount | payouts | market price ---")
+    print("--- block | price | market price | amount | payout | sold | % sold---")
     
     for i in range(n):
         if i % _s == 0:
@@ -281,7 +290,9 @@ def sample(s):
             amount = amounts[i] / 10 ** PRINCIPAL_DECIMALS
             payout = payouts[i] / 10 ** DECIMALS
             market_price = market_prices[i] / 10 ** PRINCIPAL_DECIMALS
-            print(f'{i} | {price} | {amount} | {payout} | {market_price}')
+            total_payout = total_payouts[i] / 10 ** DECIMALS
+            percent_sold = total_payout * 10 ** DECIMALS / SALE * 100
+            print(f'{i} | {price:.6f} | {market_price:.6f} | {amount:.2f} | {payout:.2f} | {total_payout:.2f} | {percent_sold:.2f}')
 
 sample(10)
             
@@ -289,9 +300,14 @@ print("--- price ---")
 plt.plot(xs, prices) 
 plt.show()
 
+print("--- total payout ---")
+plt.plot(xs, total_payouts) 
+plt.show()
+
 print("--- payout ---")
 plt.plot(xs, payouts) 
 plt.show()
+
 
 print("--- amount ---")
 plt.plot(xs, amounts) 
@@ -312,4 +328,10 @@ plt.show()
 print("--- total debt ---")
 plt.plot(xs, total_debts) 
 plt.show()
+
+
+# In[ ]:
+
+
+
 
