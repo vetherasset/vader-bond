@@ -43,6 +43,10 @@ brownie run scripts/deploy_bond.py --network kovan
 
 ### Deployment
 
+1. Deploy `Treasury`
+2. Deploy `VaderBond`
+3. Call `Treasury.setBondContract`
+
 ##### Kovan
 
 -   LP: [0x38F19a5452B03262203cAe9532Fbfd211fa32FF1](https://kovan.etherscan.io/address/0x38F19a5452B03262203cAe9532Fbfd211fa32FF1)
