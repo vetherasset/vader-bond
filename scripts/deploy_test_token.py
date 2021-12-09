@@ -7,4 +7,4 @@ def main():
     net = network.show_active()
     assert net == "kovan"
 
-    TestToken.deploy("test token", "TEST", 18, {"from": account}, publish_source=True)
+    TestToken.deploy("test", "TEST", 18, {"from": account}, publish_source=True)

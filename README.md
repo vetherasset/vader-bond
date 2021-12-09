@@ -40,6 +40,16 @@ brownie run scripts/deploy_bond.py --network kovan
 ##### Decreasing bond price
 ![bond-price-dec](./doc/bond-price-dec.png)
 
+
+### Deployment
+
+##### Kovan
+
+-   LP: [0x38F19a5452B03262203cAe9532Fbfd211fa32FF1](https://kovan.etherscan.io/address/0x38F19a5452B03262203cAe9532Fbfd211fa32FF1)
+-   Vader: [0x1fd03e4eA209497910fACE52e5ca39124ef2E8BE](https://kovan.etherscan.io/address/0x1fd03e4eA209497910fACE52e5ca39124ef2E8BE)
+-   Treasury: [0x15d89713eA5C46dE381C51A34fE4C743677576B4](https://kovan.etherscan.io/address/0x15d89713eA5C46dE381C51A34fE4C743677576B4)
+-   Bond: [0x66BcC1c537509bA441ccc9DF39E18CC142C59775](https://kovan.etherscan.io/address/0x66BcC1c537509bA441ccc9DF39E18CC142C59775)
+
 ### Misc
 
 ```shell
