@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[3]:
 
 
 from datetime import datetime
@@ -149,8 +149,10 @@ class Bond:
         return payout
 
 
-# In[74]:
+# In[16]:
 
+
+import math
 
 BLOCKS_PER_HOUR = 270
 VADER_TOTAL_SUPPLY = (25 * 10 ** 9) * 10 ** DECIMALS
@@ -158,25 +160,27 @@ SALE = 10 ** 7 * 10 ** DECIMALS
 
 LP_PRICE_USD = 23.29
 VADER_PRICE_USD = 0.03
-DISCOUNT = 0.9
+DISCOUNT = 0.94
+MAX_LP = 1100 * 10 ** PRINCIPAL_DECIMALS
 
 # --- min price ---
 # amount of VADER to receive per LP
-v = LP_PRICE_USD / VADER_PRICE_USD
+v = LP_PRICE_USD / (VADER_PRICE_USD * DISCOUNT)
 
 # amount of LP to buy 1 Vader
-x = 1 / v * DISCOUNT
+x = 1 / v
 min_price = x * 10 ** PRINCIPAL_DECIMALS
 
 # --- control variable ---
-D = 1000
+# initial number of LP to receive before bond price exceeds min price
+D = 10000
 control_variable = min_price * (VADER_TOTAL_SUPPLY / (10 ** DECIMALS)) / D
 
 # --- vesting terms ---
-vesting_terms = BLOCKS_PER_HOUR * 24 * 2
+vesting_terms = BLOCKS_PER_HOUR * 24 * 14
 
 # --- max payout % (100% = 1e5) ---
-max_payout = 100
+max_payout = math.ceil(MAX_LP * v / VADER_TOTAL_SUPPLY * 1e5)
 
 # --- max debt ---
 max_debt = (25 * 10 ** 6) * 10 ** DECIMALS
@@ -202,7 +206,7 @@ adj = {
 print(terms)
 
 
-# In[86]:
+# In[22]:
 
 
 block = Block()
@@ -227,9 +231,10 @@ debt_ratios = []
 total_debts = []
 
 # num blocks
-N = 1000
+N = BLOCKS_PER_HOUR * 24
 market_price = min_price
 sold = 0
+num_buyers = 0
 for i in range(N):
     amount = 0
     payout = 0
@@ -244,9 +249,9 @@ for i in range(N):
 
     market_price = min_price
     
-    if sold < SALE and random() > 0.9 and b.bond_price() <= 1.1 * market_price:
+    if sold < SALE and random() > 0.9 and b.bond_price() <= 1.07 * market_price:
         r = random()
-        amount = r * 1000 * 10 ** PRINCIPAL_DECIMALS
+        amount = r * MAX_LP
         value = treasury.value_of_token(amount)
         payout = b.payout_for(value)
         
@@ -257,6 +262,7 @@ for i in range(N):
         else:
             payout = b.deposit(amount)
             sold += payout
+            num_buyers += 1
     else:
         block.inc(1)
     
@@ -294,6 +300,7 @@ def sample(s):
             percent_sold = total_payout * 10 ** DECIMALS / SALE * 100
             print(f'{i} | {price:.6f} | {market_price:.6f} | {amount:.2f} | {payout:.2f} | {total_payout:.2f} | {percent_sold:.2f}')
 
+print(f'num buyers: {num_buyers}')
 sample(10)
             
 print("--- price ---")
