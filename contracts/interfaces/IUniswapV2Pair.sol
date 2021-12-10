@@ -3,8 +3,7 @@ pragma solidity 0.7.6;
 
 interface IUniswapV2Pair {
     function approve(address spender, uint value) external returns (bool);
-    function token0() external pure returns (address);
-    function token1() external pure returns (address);
+
     function getReserves()
         external
         view
