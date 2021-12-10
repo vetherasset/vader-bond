@@ -12,27 +12,36 @@ import "./Ownable.sol";
 contract Zap is Ownable, ReentrancyGuard {
     using SafeMath for uint;
 
-    IUniswapV2Router private constant router =
-        IUniswapV2Router(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+    address private constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
-    IUniswapV2Pair private constant pair =
-        IUniswapV2Pair(0x452c60e1E3Ae0965Cd27dB1c7b3A525d197Ca0Aa);
+    // 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
+    IUniswapV2Router public immutable router;
+    // 0x452c60e1E3Ae0965Cd27dB1c7b3A525d197Ca0Aa
+    IUniswapV2Pair public immutable pair;
 
-    address private WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-
-    IERC20 private constant vader =
-        IERC20(0x2602278EE1882889B946eb11DC0E810075650983);
+    // 0x2602278EE1882889B946eb11DC0E810075650983
+    IERC20 public immutable vader;
     IVaderBond public immutable bond;
 
-    constructor(address _bond) {
+    constructor(
+        address _router,
+        address _pair,
+        address _vader,
+        address _bond
+    ) {
+        require(_router != address(0), "router = zero address");
         require(_bond != address(0), "bond = zero address");
 
+        router = IUniswapV2Router(_router);
+        pair = IUniswapV2Pair(_pair);
+
+        vader = IERC20(_vader);
         bond = IVaderBond(_bond);
 
         // uniswap add liquidity
-        vader.approve(address(router), type(uint).max);
+        IERC20(_vader).approve(_router, type(uint).max);
         // vader bond deposit
-        pair.approve(_bond, type(uint).max);
+        IERC20(_pair).approve(_bond, type(uint).max);
     }
 
     // Uniswap may refund
