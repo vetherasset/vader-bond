@@ -7,10 +7,11 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./interfaces/IERC20Metadata.sol";
 import "./interfaces/ITreasury.sol";
+import "./interfaces/IVaderBond.sol";
 // import "./lib/FixedPoint.sol";
 import "./Ownable.sol";
 
-contract VaderBond is Ownable, ReentrancyGuard {
+contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
     // using FixedPoint for FixedPoint.uq112x112;
     using SafeERC20 for IERC20;
     using SafeMath for uint;
@@ -177,7 +178,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
         uint _amount,
         uint _maxPrice,
         address _depositor
-    ) external nonReentrant returns (uint) {
+    ) external override nonReentrant returns (uint) {
         require(_depositor != address(0), "depositor = zero");
 
         decayDebt();
