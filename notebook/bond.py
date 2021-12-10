@@ -6,6 +6,7 @@
 
 from datetime import datetime
 
+
 def now():
     return datetime.now().timestamp()
 
@@ -15,31 +16,33 @@ def tx(func):
         self = args[0]
         self.block.inc()
         return func(*args, **kwargs)
+
     return inner
 
 
 class Block:
-    def __init__(self, timestamp = now(), number = 0):
+    def __init__(self, timestamp=now(), number=0):
         self.timestamp = timestamp
         self.number = number
-     
-    def inc(self, n = 1):
+
+    def inc(self, n=1):
         self.number += n
         self.timestamp += n * 14
+
 
 DECIMALS = 18
 PRINCIPAL_DECIMALS = 18
 
 
 class Token:
-    def __init__(self, totalSupply = 0):
+    def __init__(self, totalSupply=0):
         self.totalSupply = totalSupply
 
 
 class Treasury:
     def __init__(self):
         pass
-    
+
     # view
     def value_of_token(self, amount):
         return amount
@@ -50,18 +53,18 @@ class Bond:
         self.block = block
         self.payoutToken = payoutToken
         self.treasury = treasury
-        
+
         # terms
         assert terms["control_variable"] > 0
         assert terms["vesting_terms"] >= 10000
         assert terms["max_payout"] <= 1000
-        
+
         self.terms = {
             "control_variable": terms["control_variable"],
             "vesting_term": terms["vesting_terms"],
             "min_price": terms["min_price"],
             "max_payout": terms["max_payout"],
-            "max_debt": terms["max_debt"]
+            "max_debt": terms["max_debt"],
         }
 
         self.total_debt = initial_debt
@@ -73,7 +76,7 @@ class Bond:
             "rate": adj["rate"],
             "target": adj["target"],
             "buffer": adj["buffer"],
-            "last_block": adj["last_block"]
+            "last_block": adj["last_block"],
         }
 
     # view
@@ -91,12 +94,12 @@ class Bond:
     # view
     def current_debt(self):
         return self.total_debt - self.debt_decay()
-    
+
     # view
     def debt_ratio(self):
         return self.current_debt() * 10 ** 18 / self.payoutToken.totalSupply
-    
-    #view
+
+    # view
     def bond_price(self):
         price = self.terms["control_variable"] * self.debt_ratio() / 10 ** 18
         if price < self.terms["min_price"]:
@@ -110,7 +113,7 @@ class Bond:
     # view
     def max_payout(self):
         return self.payoutToken.totalSupply * self.terms["max_payout"] / 1e5
-    
+
     def adjust(self):
         block_can_adjust = self.adjustment["last_block"] + self.adjustment["buffer"]
         rate = self.adjustment["rate"]
@@ -119,33 +122,33 @@ class Bond:
             if self.adjustment["add"]:
                 self.terms["control_variable"] += rate
                 if self.terms["control_variable"] >= self.adjustment["target"]:
-                    self.adjusment["rate"] = 0
+                    self.adjustment["rate"] = 0
             else:
                 self.terms["control_variable"] -= rate
                 if self.terms["control_variable"] <= self.adjustment["target"]:
-                    self.adjusment["rate"] = 0
+                    self.adjustment["rate"] = 0
 
             self.adjustment["last_block"] = self.block.number
-    
+
     @tx
     def deposit(self, amount):
         self.decay_debt()
         assert self.total_debt < self.terms["max_debt"]
-        
+
         value = self.treasury.value_of_token(amount)
         payout = self.payout_for(value)
-        
+
         assert payout >= 10 ** DECIMALS / 100
         assert payout <= self.max_payout()
-        
+
         self.total_debt += value
-        
+
         price = self.bond_price()
         if price > self.terms["min_price"] and self.terms["min_price"] > 0:
             self.terms["min_price"] = 0
-        
+
         self.adjust()
-        
+
         return payout
 
 
@@ -192,16 +195,10 @@ terms = {
     "vesting_terms": vesting_terms,
     "min_price": min_price,
     "max_payout": max_payout,
-    "max_debt": max_debt
+    "max_debt": max_debt,
 }
 
-adj = {
-    "add": False,
-    "rate": 0,
-    "target": 0,
-    "buffer": 0,
-    "last_block": 0
-}
+adj = {"add": False, "rate": 0, "target": 0, "buffer": 0, "last_block": 0}
 
 print(terms)
 
@@ -238,23 +235,23 @@ num_buyers = 0
 for i in range(N):
     amount = 0
     payout = 0
-    
+
     # get bond price before buy
     prices.append(b.bond_price())
-    
+
     if random() > 0.499:
         market_price = min(market_price * 1.01, 1000 * min_price)
     else:
         market_price *= 0.99
 
     market_price = min_price
-    
+
     if sold < SALE and random() > 0.9 and b.bond_price() <= 1.07 * market_price:
         r = random()
         amount = r * MAX_LP
         value = treasury.value_of_token(amount)
         payout = b.payout_for(value)
-        
+
         if payout < 10 ** DECIMALS / 100 or payout >= b.max_payout():
             payout = 0
             amount = 0
@@ -265,7 +262,7 @@ for i in range(N):
             num_buyers += 1
     else:
         block.inc(1)
-    
+
     payouts.append(payout)
     amounts.append(amount)
     market_prices.append(market_price)
@@ -281,15 +278,16 @@ for p in payouts:
     total_payout += p
     total_payouts.append(total_payout)
 
+
 def sample(s):
     n = len(prices)
     if s <= 0:
         return
 
     _s = n / s
-    
+
     print("--- block | price | market price | amount | payout | sold | % sold---")
-    
+
     for i in range(n):
         if i % _s == 0:
             price = prices[i] / 10 ** PRINCIPAL_DECIMALS
@@ -298,47 +296,46 @@ def sample(s):
             market_price = market_prices[i] / 10 ** PRINCIPAL_DECIMALS
             total_payout = total_payouts[i] / 10 ** DECIMALS
             percent_sold = total_payout * 10 ** DECIMALS / SALE * 100
-            print(f'{i} | {price:.6f} | {market_price:.6f} | {amount:.2f} | {payout:.2f} | {total_payout:.2f} | {percent_sold:.2f}')
+            print(
+                f"{i} | {price:.6f} | {market_price:.6f} | {amount:.2f} | {payout:.2f} | {total_payout:.2f} | {percent_sold:.2f}"
+            )
 
-print(f'num buyers: {num_buyers}')
+
+print(f"num buyers: {num_buyers}")
 sample(10)
-            
+
 print("--- price ---")
-plt.plot(xs, prices) 
+plt.plot(xs, prices)
 plt.show()
 
 print("--- total payout ---")
-plt.plot(xs, total_payouts) 
+plt.plot(xs, total_payouts)
 plt.show()
 
 print("--- payout ---")
-plt.plot(xs, payouts) 
+plt.plot(xs, payouts)
 plt.show()
 
 
 print("--- amount ---")
-plt.plot(xs, amounts) 
+plt.plot(xs, amounts)
 plt.show()
 
 print("--- market price ---")
-plt.plot(xs, market_prices) 
+plt.plot(xs, market_prices)
 plt.show()
 
 print("--- control variable ---")
-plt.plot(xs, control_vars) 
+plt.plot(xs, control_vars)
 plt.show()
 
 print("--- debt ratio ---")
-plt.plot(xs, debt_ratios) 
+plt.plot(xs, debt_ratios)
 plt.show()
 
 print("--- total debt ---")
-plt.plot(xs, total_debts) 
+plt.plot(xs, total_debts)
 plt.show()
 
 
 # In[ ]:
-
-
-
-
