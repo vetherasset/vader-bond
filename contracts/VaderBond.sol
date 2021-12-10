@@ -27,7 +27,12 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
     event BondCreated(uint deposit, uint payout, uint expires);
     event BondRedeemed(address indexed recipient, uint payout, uint remaining);
     event BondPriceChanged(uint internalPrice, uint debtRatio);
-    event ControlVariableAdjustment(uint initialBCV, uint newBCV, uint adjustment, bool addition);
+    event ControlVariableAdjustment(
+        uint initialBCV,
+        uint newBCV,
+        uint adjustment,
+        bool addition
+    );
     event TreasuryChanged(address treasury);
 
     uint8 private immutable PRINCIPAL_TOKEN_DECIMALS;
@@ -162,7 +167,13 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
         } else {
             require(_target <= terms.controlVariable, "target > cv");
         }
-        adjustment = Adjust({add: _add, rate: _rate, target: _target, buffer: _buffer, lastBlock: block.number});
+        adjustment = Adjust({
+            add: _add,
+            rate: _rate,
+            target: _target,
+            buffer: _buffer,
+            lastBlock: block.number
+        });
         emit SetAdjustment(_add, _rate, _target, _buffer);
     }
 
@@ -273,7 +284,12 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
                 }
             }
             adjustment.lastBlock = block.number;
-            emit ControlVariableAdjustment(cv, terms.controlVariable, adjustment.rate, adjustment.add);
+            emit ControlVariableAdjustment(
+                cv,
+                terms.controlVariable,
+                adjustment.rate,
+                adjustment.add
+            );
         }
     }
 
@@ -339,7 +355,8 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
      *  @return uint
      */
     function maxPayout() public view returns (uint) {
-        return payoutToken.totalSupply().mul(terms.maxPayout) / MAX_PAYOUT_DENOM;
+        return
+            payoutToken.totalSupply().mul(terms.maxPayout) / MAX_PAYOUT_DENOM;
     }
 
     /**
@@ -362,12 +379,18 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
      *  @param _depositor address
      *  @return percentVested uint
      */
-    function percentVestedFor(address _depositor) public view returns (uint percentVested) {
+    function percentVestedFor(address _depositor)
+        public
+        view
+        returns (uint percentVested)
+    {
         Bond memory bond = bondInfo[_depositor];
         uint blocksSinceLast = block.number.sub(bond.lastBlock);
         uint vesting = bond.vesting;
         if (vesting > 0) {
-            percentVested = blocksSinceLast.mul(MAX_PERCENT_VESTED).div(vesting);
+            percentVested = blocksSinceLast.mul(MAX_PERCENT_VESTED).div(
+                vesting
+            );
         }
     }
 
@@ -404,6 +427,9 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
     function recoverLostToken(address _token) external onlyOwner {
         require(_token != address(principalToken), "protected");
         require(_token != address(payoutToken), "protected");
-        IERC20(_token).safeTransfer(owner, IERC20(_token).balanceOf(address(this)));
+        IERC20(_token).safeTransfer(
+            owner,
+            IERC20(_token).balanceOf(address(this))
+        );
     }
 }
