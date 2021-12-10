@@ -9,7 +9,7 @@ import "./interfaces/IUniswapV2Pair.sol";
 import "./interfaces/IVaderBond.sol";
 import "./Ownable.sol";
 
-contract Zap is Ownable, ReentrancyGuard {
+contract ZapEth is Ownable, ReentrancyGuard {
     using SafeMath for uint;
 
     address private constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;

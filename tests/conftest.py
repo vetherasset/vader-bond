@@ -1,5 +1,14 @@
 import pytest
-from brownie import accounts, Ownable, Treasury, VaderBond, TestToken
+from brownie import (
+    accounts,
+    Ownable,
+    Treasury,
+    VaderBond,
+    ZapEth,
+    TestToken,
+    MockRouter,
+    MockPair,
+)
 
 
 @pytest.fixture(scope="session")
@@ -33,6 +42,11 @@ def bond(deployer, treasury, payoutToken, principalToken):
     yield VaderBond.deploy(treasury, payoutToken, principalToken, {"from": deployer})
 
 
+@pytest.fixture(scope="module")
+def zapEth(deployer, router, pair, payoutToken, bond):
+    yield ZapEth.deploy(router, pair, payoutToken, bond, {"from": deployer})
+
+
 # test contracts
 @pytest.fixture(scope="module")
 def payoutToken(deployer):
@@ -42,3 +56,13 @@ def payoutToken(deployer):
 @pytest.fixture(scope="module")
 def principalToken(deployer):
     yield TestToken.deploy("PRINCIPAL TOKEN", "PRINCIPAL", 6, {"from": deployer})
+
+
+@pytest.fixture(scope="module")
+def pair(deployer):
+    yield MockPair.deploy({"from": deployer})
+
+
+@pytest.fixture(scope="module")
+def router(deployer):
+    yield MockRouter.deploy({"from": deployer})
