@@ -33,6 +33,7 @@ def test_constructor(deployer, treasury, payoutToken, principalToken):
     assert bond.payoutToken() == payoutToken
     assert bond.principalToken() == principalToken
     assert bond.owner() == deployer
+    assert bond.terms()["vestingTerm"] == 10000
 
 
 def test_initialize_bond(deployer, user, bond):
@@ -58,7 +59,7 @@ def test_initialize_bond(deployer, user, bond):
             {"from": deployer},
         )
 
-    with brownie.reverts("vesting < 10000"):
+    with brownie.reverts("vesting < min"):
         bond.initializeBond(
             CONTROL_VAR,
             9999,
@@ -115,7 +116,7 @@ def test_bond_terms(chain, deployer, user, bond):
         bond.setBondTerms(0, 0, {"from": user})
 
     # test vesting terms
-    with brownie.reverts("vesting < 10000"):
+    with brownie.reverts("vesting < min"):
         bond.setBondTerms(0, 9999, {"from": deployer})
 
     chain.snapshot()

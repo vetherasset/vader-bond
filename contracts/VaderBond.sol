@@ -40,6 +40,8 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
     uint private constant MIN_PAYOUT = 10**PAYOUT_TOKEN_DECIMALS / 100; // 0.01
     uint private constant MAX_PERCENT_VESTED = 1e4; // 1 = 0.01%, 10000 = 100%
     uint private constant MAX_PAYOUT_DENOM = 1e5; // 100 = 0.1%, 100000 = 100%
+    // roughly 36 hours (262 blocks / hour)
+    uint private constant MIN_VESTING_TERMS = 10000;
 
     IERC20 public immutable payoutToken; // token paid for principal
     IERC20 public immutable principalToken; // inflow token
@@ -89,6 +91,9 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
         principalToken = IERC20(_principalToken);
 
         PRINCIPAL_TOKEN_DECIMALS = IERC20Metadata(_principalToken).decimals();
+
+        // vesting term set to > 0 so that debtDecay() doesn't fail
+        terms.vestingTerm = MIN_VESTING_TERMS;
     }
 
     /**
@@ -111,8 +116,7 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
         require(terms.controlVariable == 0, "initialized");
 
         require(_controlVariable > 0, "cv = 0");
-        // roughly 36 hours (262 blocks / hour)
-        require(_vestingTerm >= 10000, "vesting < 10000");
+        require(_vestingTerm >= MIN_VESTING_TERMS, "vesting < min");
         // max payout must be < 1% of total supply of payout token
         require(_maxPayout <= MAX_PAYOUT_DENOM / 100, "max payout > 1%");
 
@@ -135,8 +139,7 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
      */
     function setBondTerms(PARAMETER _param, uint _input) external onlyOwner {
         if (_param == PARAMETER.VESTING) {
-            // roughly 36 hours (262 blocks / hour)
-            require(_input >= 10000, "vesting < 10000");
+            require(_input >= MIN_VESTING_TERMS, "vesting < min");
             terms.vestingTerm = _input;
         } else if (_param == PARAMETER.PAYOUT) {
             // max payout must be < 1% of total supply of payout token
