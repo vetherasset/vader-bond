@@ -84,7 +84,7 @@ contract ZapEth is Ownable, ReentrancyGuard {
         path[1] = address(vader);
 
         uint[] memory amounts = router.swapExactETHForTokens{value: amount}(
-            0,
+            1,
             path,
             address(this),
             block.timestamp

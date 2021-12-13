@@ -26,11 +26,13 @@ cp .env.sample .env
 brownie test tests/path-to-test-file-or-folder -s -v
 
 # mainnet
+source .env
+
 npx ganache-cli \
 --fork https://mainnet.infura.io/v3/$WEB3_INFURA_PROJECT_ID \
---unlock $ETH_VADER_LP_WHALE
+--unlock $VADER_WHALE
 
-env $(cat .env) brownie test tests/mainnet/test_zap_eth.py --network mainnet-fork -s
+env $(cat .env) brownie test tests/mainnet/test_zap_eth.py --network mainnet-fork -s --gas
 ```
 
 ### Deploy
