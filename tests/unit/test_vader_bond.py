@@ -215,7 +215,7 @@ def test_set_adjustment(deployer, user, bond):
     assert adj["buffer"] == BUFFER
 
 
-def test_deposit(deployer, user, bond, treasury, principalToken, payoutToken):
+def test_deposit(chain, deployer, user, bond, treasury, principalToken, payoutToken):
     treasury.setBondContract(bond, True, {"from": deployer})
 
     payoutToken.mint(treasury, PAYOUT_TOTAL_SUPPLY)
@@ -229,11 +229,14 @@ def test_deposit(deployer, user, bond, treasury, principalToken, payoutToken):
     with brownie.reverts("depositor = zero"):
         bond.deposit(amount, max_price, ZERO_ADDRESS, {"from": user})
 
+    with brownie.reverts("amount = 0"):
+        bond.deposit(0, max_price, user, {"from": user})
+
     with brownie.reverts("bond price > max"):
         bond.deposit(amount, 0, user, {"from": user})
 
     with brownie.reverts("payout < min"):
-        bond.deposit(0, max_price, user, {"from": user})
+        bond.deposit(1, max_price, user, {"from": user})
 
     with brownie.reverts("payout > max"):
         bond.deposit(2 ** 128, max_price, user, {"from": user})
@@ -294,6 +297,13 @@ def test_deposit(deployer, user, bond, treasury, principalToken, payoutToken):
         after["bond"]["adjustment"]["rate"],
         after["bond"]["adjustment"]["add"],
     ]
+
+    # test deny deposit if max payout = 0
+    chain.snapshot()
+    bond.setBondTerms(1, 0, {"from": deployer})
+    with brownie.reverts("payout > max"):
+        bond.deposit(amount, max_price, user, {"from": user})
+    chain.revert()
 
 
 def test_redeem(chain, deployer, user, bond, treasury, principalToken, payoutToken):

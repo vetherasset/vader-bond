@@ -312,6 +312,7 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
         address _depositor
     ) external override nonReentrant returns (uint) {
         require(_depositor != address(0), "depositor = zero");
+        require(_amount > 0, "amount = 0");
 
         decayDebt();
         require(totalDebt <= terms.maxDebt, "max debt");
