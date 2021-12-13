@@ -36,7 +36,7 @@ def test_constructor(deployer, treasury, payoutToken, principalToken):
     assert bond.terms()["vestingTerm"] == 10000
 
 
-def test_initialize_bond(chain, deployer, user, bond):
+def test_initialize(chain, deployer, user, bond):
     with brownie.reverts("not owner"):
         bond.initialize(
             CONTROL_VAR,
