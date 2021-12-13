@@ -24,9 +24,17 @@ cp .env.sample .env
 
 ```shell
 brownie test tests/path-to-test-file-or-folder -s -v
+
+# mainnet
+npx ganache-cli \
+--fork https://mainnet.infura.io/v3/$WEB3_INFURA_PROJECT_ID \
+--unlock $ETH_VADER_LP_WHALE
+
+env $(cat .env) brownie test tests/mainnet/test_zap_eth.py --network mainnet-fork -s
 ```
 
 ### Deploy
+
 ```shell
 brownie run scripts/deploy_treasury.py --network kovan
 brownie run scripts/deploy_bond.py --network kovan
@@ -35,11 +43,12 @@ brownie run scripts/deploy_bond.py --network kovan
 ### Simulation
 
 ##### Increasing bond price
+
 ![bond-price-inc](./doc/bond-price-inc.png)
 
 ##### Decreasing bond price
-![bond-price-dec](./doc/bond-price-dec.png)
 
+![bond-price-dec](./doc/bond-price-dec.png)
 
 ### Deployment
 
