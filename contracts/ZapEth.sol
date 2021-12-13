@@ -70,6 +70,14 @@ contract ZapEth is Ownable, ReentrancyGuard {
                 .sub(reserveIn.mul(1997)) / 1994;
     }
 
+    function calculateSwapInAmount(uint reserveIn, uint userIn)
+        external
+        pure
+        returns (uint)
+    {
+        return _calculateSwapInAmount(reserveIn, userIn);
+    }
+
     function _swap(uint amount) private returns (uint) {
         address[] memory path = new address[](2);
         path[0] = WETH;
@@ -113,7 +121,7 @@ contract ZapEth is Ownable, ReentrancyGuard {
 
         // deposit LP for bond
         uint payout = bond.deposit(lp, type(uint).max, msg.sender);
-        require(payout >= minPayout);
+        require(payout >= minPayout, "payout < min");
     }
 
     function recover(address _token) external onlyOwner {

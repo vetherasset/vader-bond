@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.7.6;
 
-interface IUniswapV2Pair {
-    function approve(address spender, uint value) external returns (bool);
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+interface IUniswapV2Pair is IERC20 {
     function getReserves()
         external
         view

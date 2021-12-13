@@ -1,13 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.7.6;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../interfaces/IUniswapV2Pair.sol";
 
-contract MockPair is IUniswapV2Pair {
+contract MockPair is IUniswapV2Pair, ERC20 {
     uint112 public reserve0;
+    uint112 public reserve1;
 
-    function _setReserve0_(uint112 _reserve0) external {
+    constructor() ERC20("lp", "LP") {}
+
+    function _setReserves_(uint112 _reserve0, uint112 _reserve1) external {
         reserve0 = _reserve0;
+        reserve1 = _reserve1;
     }
 
     function getReserves()
@@ -20,10 +25,10 @@ contract MockPair is IUniswapV2Pair {
             uint32
         )
     {
-        return (reserve0, 0, 0);
+        return (reserve0, reserve1, 0);
     }
 
-    function approve(address, uint) external override returns (bool) {
-        return true;
+    function mint(address _to, uint _amount) external {
+        _mint(_to, _amount);
     }
 }
