@@ -55,7 +55,13 @@ def payoutToken(deployer):
 
 @pytest.fixture(scope="module")
 def principalToken(deployer):
-    yield TestToken.deploy("PRINCIPAL TOKEN", "PRINCIPAL", 6, {"from": deployer})
+    yield TestToken.deploy("PRINCIPAL TOKEN", "PRINCIPAL", 18, {"from": deployer})
+
+
+# alias
+@pytest.fixture(scope="module")
+def vader(payoutToken):
+    yield payoutToken
 
 
 @pytest.fixture(scope="module")
@@ -64,5 +70,5 @@ def pair(deployer):
 
 
 @pytest.fixture(scope="module")
-def router(deployer):
-    yield MockRouter.deploy({"from": deployer})
+def router(deployer, pair):
+    yield MockRouter.deploy(pair, {"from": deployer})

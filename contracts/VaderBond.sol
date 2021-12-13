@@ -184,6 +184,7 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
         uint _buffer
     ) external onlyOwner {
         require(_rate <= terms.controlVariable.mul(3) / 100, "rate > 3%");
+
         if (_add) {
             require(_target >= terms.controlVariable, "target < cv");
         } else {

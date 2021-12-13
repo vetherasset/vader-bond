@@ -2,17 +2,17 @@ import brownie
 from brownie import VaderBond, TestToken, ZERO_ADDRESS
 
 ## Terms
-CONTROL_VAR = 1e6
+CONTROL_VAR = int(3 * 1e21)
 VESTING_TERM = 10000
-MIN_PRICE = 0.1 * 1e6
+MIN_PRICE = int(0.001 * 1e18)
 MAX_PAYOUT = 1000
-MAX_DEBT = 50 * 1e18
+MAX_DEBT = int(1e7 * 1e18)
 INITIAL_DEBT = 0
-PAYOUT_TOTAL_SUPPLY = 1e7 * 1e18
+PAYOUT_TOTAL_SUPPLY = int(25 * 1e9 * 1e18)
 
 ## Adjustment
 ADD = True
-RATE = CONTROL_VAR * 3 / 100
+RATE = int(0.03 * CONTROL_VAR)
 TARGET = CONTROL_VAR * 2
 BUFFER = 1
 
@@ -229,7 +229,7 @@ def test_deposit(chain, deployer, user, bond, treasury, principalToken, payoutTo
 
     payoutToken.mint(treasury, PAYOUT_TOTAL_SUPPLY)
 
-    amount = 10 ** 6
+    amount = 1e18
     principalToken.mint(user, amount)
     principalToken.approve(bond, amount, {"from": user})
 
