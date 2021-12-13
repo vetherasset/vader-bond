@@ -428,7 +428,7 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
      *  @notice allows owner to send lost tokens to owner
      *  @param _token address
      */
-    function recoverLostToken(address _token) external onlyOwner {
+    function recover(address _token) external onlyOwner {
         require(_token != address(payoutToken), "protected");
         IERC20(_token).safeTransfer(
             owner,

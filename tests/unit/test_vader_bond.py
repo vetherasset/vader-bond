@@ -387,18 +387,18 @@ def test_recover_lost_tokens(deployer, user, bond, payoutToken):
     token.mint(bond, 111)
 
     with brownie.reverts("not owner"):
-        bond.recoverLostToken(
+        bond.recover(
             token,
             {"from": user},
         )
 
     with brownie.reverts("protected"):
-        bond.recoverLostToken(
+        bond.recover(
             payoutToken,
             {"from": deployer},
         )
 
-    bond.recoverLostToken(
+    bond.recover(
         token,
         {"from": deployer},
     )
