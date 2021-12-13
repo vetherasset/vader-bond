@@ -113,7 +113,7 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
         uint _maxDebt,
         uint _initialDebt
     ) external onlyOwner {
-        require(terms.controlVariable == 0, "initialized");
+        require(currentDebt() == 0, "debt > 0");
 
         require(_controlVariable > 0, "cv = 0");
         require(_vestingTerm >= MIN_VESTING_TERMS, "vesting < min");
@@ -428,7 +428,6 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
      *  @param _token address
      */
     function recoverLostToken(address _token) external onlyOwner {
-        require(_token != address(principalToken), "protected");
         require(_token != address(payoutToken), "protected");
         IERC20(_token).safeTransfer(
             owner,

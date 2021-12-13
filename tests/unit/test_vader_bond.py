@@ -36,7 +36,7 @@ def test_constructor(deployer, treasury, payoutToken, principalToken):
     assert bond.terms()["vestingTerm"] == 10000
 
 
-def test_initialize_bond(deployer, user, bond):
+def test_initialize_bond(chain, deployer, user, bond):
     with brownie.reverts("not owner"):
         bond.initializeBond(
             CONTROL_VAR,
@@ -99,7 +99,20 @@ def test_initialize_bond(deployer, user, bond):
     assert bond.totalDebt() == INITIAL_DEBT
     assert bond.lastDecay() == tx.block_number
 
-    with brownie.reverts("initialized"):
+    # test fail if debt > 0
+    chain.snapshot()
+
+    bond.initializeBond(
+        CONTROL_VAR,
+        VESTING_TERM,
+        MIN_PRICE,
+        MAX_PAYOUT,
+        MAX_DEBT,
+        1,
+        {"from": deployer},
+    )
+
+    with brownie.reverts("debt > 0"):
         bond.initializeBond(
             CONTROL_VAR,
             VESTING_TERM,
@@ -109,6 +122,8 @@ def test_initialize_bond(deployer, user, bond):
             INITIAL_DEBT,
             {"from": deployer},
         )
+
+    chain.revert()
 
 
 def test_bond_terms(chain, deployer, user, bond):
@@ -357,7 +372,7 @@ def test_set_treasury(deployer, user, bond):
     assert tx.events["TreasuryChanged"].values() == [ZERO_ADDRESS]
 
 
-def test_recover_lost_tokens(deployer, user, bond, principalToken, payoutToken):
+def test_recover_lost_tokens(deployer, user, bond, payoutToken):
     token = TestToken.deploy("TEST", "TEST", 18, {"from": deployer})
     token.mint(bond, 111)
 
@@ -365,12 +380,6 @@ def test_recover_lost_tokens(deployer, user, bond, principalToken, payoutToken):
         bond.recoverLostToken(
             token,
             {"from": user},
-        )
-
-    with brownie.reverts("protected"):
-        bond.recoverLostToken(
-            principalToken,
-            {"from": deployer},
         )
 
     with brownie.reverts("protected"):
