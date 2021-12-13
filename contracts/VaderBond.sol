@@ -22,11 +22,20 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
         DEBT
     }
 
+    event Initialize(
+        uint controlVariable,
+        uint vestingTerm,
+        uint minPrice,
+        uint maxPayout,
+        uint maxDebt,
+        uint inititalDebt,
+        uint lastDecay
+    );
     event SetBondTerms(PARAMETER indexed param, uint input);
     event SetAdjustment(bool add, uint rate, uint target, uint buffer);
     event BondCreated(uint deposit, uint payout, uint expires);
     event BondRedeemed(address indexed recipient, uint payout, uint remaining);
-    event BondPriceChanged(uint internalPrice, uint debtRatio);
+    event BondPriceChanged(uint price, uint debtRatio);
     event ControlVariableAdjustment(
         uint initialBCV,
         uint newBCV,
@@ -105,7 +114,7 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
      *  @param _maxDebt uint
      *  @param _initialDebt uint
      */
-    function initializeBond(
+    function initialize(
         uint _controlVariable,
         uint _vestingTerm,
         uint _minPrice,
@@ -130,6 +139,16 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
 
         totalDebt = _initialDebt;
         lastDecay = block.number;
+
+        emit Initialize(
+            _controlVariable,
+            _vestingTerm,
+            _minPrice,
+            _maxPayout,
+            _maxDebt,
+            _initialDebt,
+            block.number
+        );
     }
 
     /**

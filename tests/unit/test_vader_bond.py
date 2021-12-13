@@ -38,7 +38,7 @@ def test_constructor(deployer, treasury, payoutToken, principalToken):
 
 def test_initialize_bond(chain, deployer, user, bond):
     with brownie.reverts("not owner"):
-        bond.initializeBond(
+        bond.initialize(
             CONTROL_VAR,
             VESTING_TERM,
             MIN_PRICE,
@@ -49,7 +49,7 @@ def test_initialize_bond(chain, deployer, user, bond):
         )
 
     with brownie.reverts("cv = 0"):
-        bond.initializeBond(
+        bond.initialize(
             0,
             VESTING_TERM,
             MIN_PRICE,
@@ -60,7 +60,7 @@ def test_initialize_bond(chain, deployer, user, bond):
         )
 
     with brownie.reverts("vesting < min"):
-        bond.initializeBond(
+        bond.initialize(
             CONTROL_VAR,
             9999,
             MIN_PRICE,
@@ -71,7 +71,7 @@ def test_initialize_bond(chain, deployer, user, bond):
         )
 
     with brownie.reverts("max payout > 1%"):
-        bond.initializeBond(
+        bond.initialize(
             CONTROL_VAR,
             VESTING_TERM,
             MIN_PRICE,
@@ -81,7 +81,7 @@ def test_initialize_bond(chain, deployer, user, bond):
             {"from": deployer},
         )
 
-    tx = bond.initializeBond(
+    tx = bond.initialize(
         CONTROL_VAR,
         VESTING_TERM,
         MIN_PRICE,
@@ -91,6 +91,15 @@ def test_initialize_bond(chain, deployer, user, bond):
         {"from": deployer},
     )
 
+    assert tx.events["Initialize"].values() == [
+        CONTROL_VAR,
+        VESTING_TERM,
+        MIN_PRICE,
+        MAX_PAYOUT,
+        MAX_DEBT,
+        INITIAL_DEBT,
+        tx.block_number,
+    ]
     assert bond.terms()["controlVariable"] == CONTROL_VAR
     assert bond.terms()["vestingTerm"] == VESTING_TERM
     assert bond.terms()["minPrice"] == MIN_PRICE
@@ -102,7 +111,7 @@ def test_initialize_bond(chain, deployer, user, bond):
     # test fail if debt > 0
     chain.snapshot()
 
-    bond.initializeBond(
+    bond.initialize(
         CONTROL_VAR,
         VESTING_TERM,
         MIN_PRICE,
@@ -113,7 +122,7 @@ def test_initialize_bond(chain, deployer, user, bond):
     )
 
     with brownie.reverts("debt > 0"):
-        bond.initializeBond(
+        bond.initialize(
             CONTROL_VAR,
             VESTING_TERM,
             MIN_PRICE,
