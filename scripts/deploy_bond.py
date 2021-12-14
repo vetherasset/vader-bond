@@ -7,6 +7,8 @@ PRINCIPAL = "0x38F19a5452B03262203cAe9532Fbfd211fa32FF1"
 
 def main():
     account = accounts.load("dev")
+    print(f"account: {account}")
+
     VaderBond.deploy(
         TREASURY, PAYOUT, PRINCIPAL, {"from": account}, publish_source=True
     )
