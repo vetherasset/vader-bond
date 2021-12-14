@@ -39,7 +39,7 @@ env $(cat .env) brownie test tests/mainnet/test_zap_eth.py --network mainnet-for
 
 ```shell
 env $(cat .env) brownie run scripts/deploy_treasury.py --network kovan
-env $(cat .env) brownie run scripts/deploy_bond.py --network kovan
+env $(cat .env) brownie run scripts/deploy_vader_bond.py --network kovan
 ```
 
 ### Simulation
@@ -57,13 +57,15 @@ env $(cat .env) brownie run scripts/deploy_bond.py --network kovan
 1. Deploy `Treasury`
 2. Deploy `VaderBond`
 3. Call `Treasury.setBondContract`
+4. Send Vader to `Treasury`
+5. Call `VaderBond.initialize`
 
 ##### Kovan
 
--   LP: [0x38F19a5452B03262203cAe9532Fbfd211fa32FF1](https://kovan.etherscan.io/address/0x38F19a5452B03262203cAe9532Fbfd211fa32FF1)
+-   LP: [0xC42706E83433580dd8d865a30e2Ae61082056007](https://kovan.etherscan.io/address/0xC42706E83433580dd8d865a30e2Ae61082056007)
 -   Vader: [0xB46dbd07ce34813623FB0643b21DCC8D0268107D](https://kovan.etherscan.io/address/0xB46dbd07ce34813623FB0643b21DCC8D0268107D)
--   Treasury: [0x15d89713eA5C46dE381C51A34fE4C743677576B4](https://kovan.etherscan.io/address/0x15d89713eA5C46dE381C51A34fE4C743677576B4)
--   Bond: [0x5D0cb7f45Cf1D538b252ecCB3edAEc8edce9A462](https://kovan.etherscan.io/address/0x5D0cb7f45Cf1D538b252ecCB3edAEc8edce9A462)
+-   Treasury: [0xda65ebebEf219f229E69E25a70fE6A8443Ee1aC6](https://kovan.etherscan.io/address/0xda65ebebEf219f229E69E25a70fE6A8443Ee1aC6)
+-   VaderBond: [0xd932cc11F49df7638999E2a313e5808667363750](https://kovan.etherscan.io/address/0xd932cc11F49df7638999E2a313e5808667363750)
 
 ### Misc
 

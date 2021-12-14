@@ -1,10 +1,16 @@
-from brownie import Treasury, accounts
+from brownie import Treasury, accounts, network
 
-VADER = "0x1fd03e4eA209497910fACE52e5ca39124ef2E8BE"
+VADER = {
+    "kovan": "0xB46dbd07ce34813623FB0643b21DCC8D0268107D",
+    "mainnet": "0x2602278EE1882889B946eb11DC0E810075650983",
+}
 
 
 def main():
     account = accounts.load("dev")
     print(f"account: {account}")
 
-    Treasury.deploy(VADER, {"from": account}, publish_source=True)
+    net = network.show_active()
+    vader = VADER[net]
+
+    Treasury.deploy(vader, {"from": account}, publish_source=True)
