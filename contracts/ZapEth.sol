@@ -127,11 +127,11 @@ contract ZapEth is Ownable, ReentrancyGuard {
     function recover(address _token) external onlyOwner {
         if (_token != address(0)) {
             IERC20(_token).transfer(
-                owner,
+                msg.sender,
                 IERC20(_token).balanceOf(address(this))
             );
         } else {
-            payable(owner).transfer(address(this).balance);
+            payable(msg.sender).transfer(address(this).balance);
         }
     }
 }

@@ -451,7 +451,7 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
     function recover(address _token) external onlyOwner {
         require(_token != address(payoutToken), "protected");
         IERC20(_token).safeTransfer(
-            owner,
+            msg.sender,
             IERC20(_token).balanceOf(address(this))
         );
     }
