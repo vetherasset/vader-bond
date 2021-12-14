@@ -6,6 +6,7 @@ from brownie import (
     VaderBond,
     ZapEth,
     TestToken,
+    TestVader,
     MockRouter,
     MockPair,
 )
@@ -53,7 +54,7 @@ def zapEth(deployer, router, pair, payoutToken, bond):
 # test contracts
 @pytest.fixture(scope="module")
 def payoutToken(deployer):
-    yield TestToken.deploy("PAYOUT", "PAYOUT", 18, {"from": deployer})
+    yield TestVader.deploy({"from": deployer})
 
 
 @pytest.fixture(scope="module")

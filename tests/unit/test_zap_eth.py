@@ -25,7 +25,6 @@ MIN_PRICE = int(0.001 * 1e18)
 MAX_PAYOUT = 1000
 MAX_DEBT = int(1e7 * 1e18)
 INITIAL_DEBT = 0
-PAYOUT_TOTAL_SUPPLY = int(25 * 1e9 * 1e18)
 
 
 def test_zap(deployer, router, pair, vader, treasury, user):
@@ -47,7 +46,7 @@ def test_zap(deployer, router, pair, vader, treasury, user):
 
     zap = ZapEth.deploy(WETH, router, pair, vader, bond, {"from": deployer})
 
-    vader.mint(treasury, PAYOUT_TOTAL_SUPPLY)
+    vader.mint(treasury, MAX_DEBT)
     eth_in = 1e18
     vader_out = 30 * 1e18
     reserve_0 = 300 * 1e18

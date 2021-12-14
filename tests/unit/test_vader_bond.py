@@ -8,7 +8,6 @@ MIN_PRICE = int(0.001 * 1e18)
 MAX_PAYOUT = 1000
 MAX_DEBT = int(1e7 * 1e18)
 INITIAL_DEBT = 0
-PAYOUT_TOTAL_SUPPLY = int(25 * 1e9 * 1e18)
 
 ## Adjustment
 ADD = True
@@ -227,7 +226,7 @@ def test_set_adjustment(deployer, user, bond):
 def test_deposit(chain, deployer, user, bond, treasury, principalToken, payoutToken):
     treasury.setBondContract(bond, True, {"from": deployer})
 
-    payoutToken.mint(treasury, PAYOUT_TOTAL_SUPPLY)
+    payoutToken.mint(treasury, MAX_DEBT)
 
     amount = 1e18
     principalToken.mint(user, amount)
