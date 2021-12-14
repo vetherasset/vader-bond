@@ -83,14 +83,13 @@ contract ZapEth is Ownable, ReentrancyGuard {
         path[0] = WETH;
         path[1] = address(vader);
 
-        uint[] memory amounts = router.swapExactETHForTokens{value: amount}(
-            1,
-            path,
-            address(this),
-            block.timestamp
-        );
-
-        return amounts[1];
+        return
+            router.swapExactETHForTokens{value: amount}(
+                1,
+                path,
+                address(this),
+                block.timestamp
+            )[1];
     }
 
     function zap(uint minPayout) external payable nonReentrant {
