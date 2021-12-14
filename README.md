@@ -38,8 +38,8 @@ env $(cat .env) brownie test tests/mainnet/test_zap_eth.py --network mainnet-for
 ### Deploy
 
 ```shell
-brownie run scripts/deploy_treasury.py --network kovan
-brownie run scripts/deploy_bond.py --network kovan
+env $(cat .env) brownie run scripts/deploy_treasury.py --network kovan
+env $(cat .env) brownie run scripts/deploy_bond.py --network kovan
 ```
 
 ### Simulation
@@ -61,9 +61,9 @@ brownie run scripts/deploy_bond.py --network kovan
 ##### Kovan
 
 -   LP: [0x38F19a5452B03262203cAe9532Fbfd211fa32FF1](https://kovan.etherscan.io/address/0x38F19a5452B03262203cAe9532Fbfd211fa32FF1)
--   Vader: [0x1fd03e4eA209497910fACE52e5ca39124ef2E8BE](https://kovan.etherscan.io/address/0x1fd03e4eA209497910fACE52e5ca39124ef2E8BE)
+-   Vader: [0xB46dbd07ce34813623FB0643b21DCC8D0268107D](https://kovan.etherscan.io/address/0xB46dbd07ce34813623FB0643b21DCC8D0268107D)
 -   Treasury: [0x15d89713eA5C46dE381C51A34fE4C743677576B4](https://kovan.etherscan.io/address/0x15d89713eA5C46dE381C51A34fE4C743677576B4)
--   Bond: [0x66BcC1c537509bA441ccc9DF39E18CC142C59775](https://kovan.etherscan.io/address/0x66BcC1c537509bA441ccc9DF39E18CC142C59775)
+-   Bond: [0x5D0cb7f45Cf1D538b252ecCB3edAEc8edce9A462](https://kovan.etherscan.io/address/0x5D0cb7f45Cf1D538b252ecCB3edAEc8edce9A462)
 
 ### Misc
 
@@ -76,4 +76,7 @@ solc-select use 0.7.6
 
 # check code size (max 2457 bytes)
 brownie compile -s
+
+# console
+env $(cat .env) brownie console --network kovan
 ```
