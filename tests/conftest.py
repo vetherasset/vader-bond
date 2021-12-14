@@ -42,9 +42,12 @@ def bond(deployer, treasury, payoutToken, principalToken):
     yield VaderBond.deploy(treasury, payoutToken, principalToken, {"from": deployer})
 
 
+WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+
+
 @pytest.fixture(scope="module")
 def zapEth(deployer, router, pair, payoutToken, bond):
-    yield ZapEth.deploy(router, pair, payoutToken, bond, {"from": deployer})
+    yield ZapEth.deploy(WETH, router, pair, payoutToken, bond, {"from": deployer})
 
 
 # test contracts

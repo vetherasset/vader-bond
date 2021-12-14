@@ -12,7 +12,8 @@ import "./Ownable.sol";
 contract ZapEth is Ownable, ReentrancyGuard {
     using SafeMath for uint;
 
-    address private constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    // 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
+    address public immutable WETH;
 
     // 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
     IUniswapV2Router public immutable router;
@@ -24,14 +25,17 @@ contract ZapEth is Ownable, ReentrancyGuard {
     IVaderBond public immutable bond;
 
     constructor(
+        address _weth,
         address _router,
         address _pair,
         address _vader,
         address _bond
     ) {
+        require(_weth != address(0), "weth = zero address");
         require(_router != address(0), "router = zero address");
         require(_bond != address(0), "bond = zero address");
 
+        WETH = _weth;
         router = IUniswapV2Router(_router);
         pair = IUniswapV2Pair(_pair);
 

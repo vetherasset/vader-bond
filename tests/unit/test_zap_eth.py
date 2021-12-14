@@ -2,9 +2,13 @@ import brownie
 from brownie import ZERO_ADDRESS, VaderBond, ZapEth
 
 
+WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+
+
 def test_constructor(deployer, zapEth, router, pair, vader, bond):
     zap = zapEth
 
+    assert zap.WETH() == WETH
     assert zap.router() == router
     assert zap.pair() == pair
     assert zap.vader() == vader
@@ -41,7 +45,7 @@ def test_zap(deployer, router, pair, vader, treasury, user):
 
     treasury.setBondContract(bond, True, {"from": deployer})
 
-    zap = ZapEth.deploy(router, pair, vader, bond, {"from": deployer})
+    zap = ZapEth.deploy(WETH, router, pair, vader, bond, {"from": deployer})
 
     vader.mint(treasury, PAYOUT_TOTAL_SUPPLY)
     eth_in = 1e18
