@@ -12,6 +12,10 @@ import "./Ownable.sol";
 contract ZapEth is Ownable, ReentrancyGuard {
     using SafeMath for uint;
 
+    event Pause(bool _paused);
+
+    bool public paused;
+
     // 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
     address public immutable WETH;
 
@@ -46,6 +50,26 @@ contract ZapEth is Ownable, ReentrancyGuard {
         IERC20(_vader).approve(_router, type(uint).max);
         // vader bond deposit
         IERC20(_pair).approve(_bond, type(uint).max);
+    }
+
+    modifier whenPaused() {
+        require(paused, "not paused");
+        _;
+    }
+
+    modifier whenNotPaused() {
+        require(!paused, "paused");
+        _;
+    }
+
+    function pause() external onlyOwner whenNotPaused {
+        paused = true;
+        emit Pause(true);
+    }
+
+    function unpause() external onlyOwner whenPaused {
+        paused = false;
+        emit Pause(false);
     }
 
     // Uniswap may refund
@@ -96,7 +120,7 @@ contract ZapEth is Ownable, ReentrancyGuard {
             )[1];
     }
 
-    function zap(uint minPayout) external payable nonReentrant {
+    function zap(uint minPayout) external payable nonReentrant whenNotPaused {
         require(msg.value > 0, "value = 0");
 
         // reserve 0 = Vader

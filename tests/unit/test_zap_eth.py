@@ -19,6 +19,36 @@ def test_constructor(deployer, zapEth, router, pair, vader, bond):
     assert pair.allowance(zap, bond) == 2 ** 256 - 1
 
 
+def test_pause(deployer, user, zapEth):
+    zap = zapEth
+
+    with brownie.reverts("not owner"):
+        zap.pause({"from": user})
+
+    tx = zap.pause({"from": deployer})
+
+    assert tx.events["Pause"].values() == [True]
+    assert zap.paused()
+
+    with brownie.reverts("paused"):
+        zap.pause({"from": deployer})
+
+
+def test_unpause(deployer, user, zapEth):
+    zap = zapEth
+
+    with brownie.reverts("not owner"):
+        zap.unpause({"from": user})
+
+    tx = zap.unpause({"from": deployer})
+
+    assert tx.events["Pause"].values() == [False]
+    assert not zap.paused()
+
+    with brownie.reverts("not paused"):
+        zap.unpause({"from": deployer})
+
+
 CONTROL_VAR = int(3 * 1e21)
 VESTING_TERM = 10000
 MIN_PRICE = int(0.001 * 1e18)
@@ -61,6 +91,14 @@ def test_zap(deployer, router, pair, vader, treasury, user):
     pair.mint(router, lp_amount)
 
     router._setAmounts_(0.9 * vader_out, 0.8 * (eth_in - eth_swap))
+
+    # test paused
+    zap.pause({"from": deployer})
+
+    with brownie.reverts("paused"):
+        zap.zap(0, {"from": user, "value": 0})
+
+    zap.unpause({"from": deployer})
 
     with brownie.reverts("value = 0"):
         zap.zap(0, {"from": user, "value": 0})
