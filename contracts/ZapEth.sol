@@ -98,15 +98,15 @@ contract ZapEth is Ownable, ReentrancyGuard {
 
         // reserve 0 = Vader
         (uint reserve0, , ) = pair.getReserves();
-        uint ethIn = _calculateSwapInAmount(reserve0, msg.value);
+        uint ethSwapAmount = _calculateSwapInAmount(reserve0, msg.value);
 
         // swap ETH to Vader
-        uint vaderOut = _swap(ethIn);
+        uint vaderOut = _swap(ethSwapAmount);
 
         // add liquidity
-        uint bal = msg.value - ethIn;
+        uint ethIn = msg.value.sub(ethSwapAmount);
         (uint amountVader, uint amountEth, uint lp) = router.addLiquidityETH{
-            value: bal
+            value: ethIn
         }(address(vader), vaderOut, 1, 1, address(this), block.timestamp);
 
         // refund Vader
@@ -114,8 +114,8 @@ contract ZapEth is Ownable, ReentrancyGuard {
             vader.transfer(msg.sender, vaderOut - amountVader);
         }
         // refund ETH
-        if (amountEth < bal) {
-            (bool ok, ) = msg.sender.call{value: bal - amountEth}("");
+        if (amountEth < ethIn) {
+            (bool ok, ) = msg.sender.call{value: ethIn - amountEth}("");
             require(ok, "refund ETH failed");
         }
 
