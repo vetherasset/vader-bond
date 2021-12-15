@@ -66,7 +66,7 @@ env $(cat .env) brownie run scripts/deploy_vader_bond.py --network kovan
 
 -   LP: [0xC42706E83433580dd8d865a30e2Ae61082056007](https://kovan.etherscan.io/address/0xC42706E83433580dd8d865a30e2Ae61082056007)
 -   Vader: [0xB46dbd07ce34813623FB0643b21DCC8D0268107D](https://kovan.etherscan.io/address/0xB46dbd07ce34813623FB0643b21DCC8D0268107D)
--   Treasury: [0xda65ebebEf219f229E69E25a70fE6A8443Ee1aC6](https://kovan.etherscan.io/address/0xda65ebebEf219f229E69E25a70fE6A8443Ee1aC6)
+-   Treasury: [0x666266f24E17d9ab7bCb25715C75146143E16c39](https://kovan.etherscan.io/address/0x666266f24E17d9ab7bCb25715C75146143E16c39)
 -   VaderBond: [0xd932cc11F49df7638999E2a313e5808667363750](https://kovan.etherscan.io/address/0xd932cc11F49df7638999E2a313e5808667363750)
 -   ZapEth: [0x6D51Ef96C362fdea02c61Ce2dD1A263B5ABbd4B9](https://kovan.etherscan.io/address/0x6D51Ef96C362fdea02c61Ce2dD1A263B5ABbd4B9)
 
