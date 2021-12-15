@@ -13,7 +13,11 @@ contract Treasury is Ownable, ITreasury {
     using SafeMath for uint;
 
     event SetBondContract(address bond, bool approved);
-    event Withdraw(address indexed token, address indexed destination, uint amount);
+    event Withdraw(
+        address indexed token,
+        address indexed destination,
+        uint amount
+    );
 
     uint8 private immutable PAYOUT_TOKEN_DECIMALS;
     uint private immutable PAYOUT_TOKEN_SCALE; // 10 ** decimals
@@ -45,7 +49,11 @@ contract Treasury is Ownable, ITreasury {
         uint _principalAmount,
         uint _payoutAmount
     ) external override onlyBondContract {
-        IERC20(_principalToken).safeTransferFrom(msg.sender, address(this), _principalAmount);
+        IERC20(_principalToken).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _principalAmount
+        );
         IERC20(payoutToken).safeTransfer(msg.sender, _payoutAmount);
     }
 
@@ -55,9 +63,17 @@ contract Treasury is Ownable, ITreasury {
      *   @param _amount uint
      *   @return value uint
      */
-    function valueOfToken(address _principalToken, uint _amount) external view override returns (uint) {
+    function valueOfToken(address _principalToken, uint _amount)
+        external
+        view
+        override
+        returns (uint)
+    {
         // convert amount to match payout token decimals
-        return _amount.mul(PAYOUT_TOKEN_SCALE).div(10**IERC20Metadata(_principalToken).decimals());
+        return
+            _amount.mul(PAYOUT_TOKEN_SCALE).div(
+                10**IERC20Metadata(_principalToken).decimals()
+            );
     }
 
     /**
