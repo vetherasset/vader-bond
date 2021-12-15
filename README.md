@@ -58,8 +58,9 @@ env $(cat .env) brownie run scripts/deploy_vader_bond.py --network kovan
 1. Deploy `Treasury`
 2. Deploy `VaderBond`
 3. Call `Treasury.setBondContract`
-4. Send Vader to `Treasury`
-5. Call `VaderBond.initialize`
+4. Call `Treasury.setMaxPayout`
+5. Send Vader to `Treasury`
+6. Call `VaderBond.initialize`
 
 ##### Kovan
 

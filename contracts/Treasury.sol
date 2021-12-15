@@ -13,6 +13,8 @@ contract Treasury is Ownable, ITreasury {
     using SafeMath for uint;
 
     event SetBondContract(address bond, bool approved);
+    event SetMaxPayout(address indexed bond, uint max);
+    event ResetPayout(address indexed bond, uint sold);
     event Withdraw(
         address indexed token,
         address indexed destination,
@@ -24,6 +26,10 @@ contract Treasury is Ownable, ITreasury {
 
     address public immutable payoutToken;
     mapping(address => bool) public isBondContract;
+    // max payout per bond
+    mapping(address => uint) public maxPayouts;
+    // total payout per bond
+    mapping(address => uint) public payouts;
 
     constructor(address _payoutToken) {
         require(_payoutToken != address(0), "payout token = zero");
@@ -49,6 +55,12 @@ contract Treasury is Ownable, ITreasury {
         uint _principalAmount,
         uint _payoutAmount
     ) external override onlyBondContract {
+        payouts[msg.sender] += _payoutAmount;
+        require(
+            payouts[msg.sender] <= maxPayouts[msg.sender],
+            "total payout > max"
+        );
+
         IERC20(_principalToken).safeTransferFrom(
             msg.sender,
             address(this),
@@ -101,5 +113,27 @@ contract Treasury is Ownable, ITreasury {
         require(isBondContract[_bond] != _approve, "no change");
         isBondContract[_bond] = _approve;
         emit SetBondContract(_bond, _approve);
+    }
+
+    /**
+     *  @notice set max amount of bond to be sold by the bond contract
+     *  @param _bond address
+     *  @param _max uint
+     */
+    function setMaxPayout(address _bond, uint _max) external onlyOwner {
+        require(isBondContract[_bond], "not bond");
+        maxPayouts[_bond] = _max;
+        emit SetMaxPayout(_bond, _max);
+    }
+
+    /**
+     *  @notice reset amount of bond sold
+     *  @param _bond address
+     */
+    function resetPayout(address _bond) external onlyOwner {
+        require(isBondContract[_bond], "not bond");
+        uint sold = payouts[_bond];
+        payouts[_bond] = 0;
+        emit ResetPayout(_bond, sold);
     }
 }
