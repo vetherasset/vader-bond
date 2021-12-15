@@ -22,6 +22,7 @@ def test_zap_eth(deployer, lp, vader, vader_whale, user):
     bond = VaderBond.deploy(treasury, vader, lp, {"from": deployer})
 
     treasury.setBondContract(bond, True, {"from": deployer})
+    treasury.setMaxPayout(bond, 1e6 * 1e18, {"from": deployer})
     vader.transfer(treasury, 1e6 * 1e18, {"from": vader_whale})
 
     bond.initialize(

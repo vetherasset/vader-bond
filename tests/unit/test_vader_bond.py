@@ -225,6 +225,7 @@ def test_set_adjustment(deployer, user, bond):
 
 def test_deposit(chain, deployer, user, bond, treasury, principalToken, payoutToken):
     treasury.setBondContract(bond, True, {"from": deployer})
+    treasury.setMaxPayout(bond, MAX_DEBT, {"from": deployer})
 
     payoutToken.mint(treasury, MAX_DEBT)
 

@@ -73,6 +73,7 @@ def test_zap(deployer, router, pair, vader, treasury, user):
     )
 
     treasury.setBondContract(bond, True, {"from": deployer})
+    treasury.setMaxPayout(bond, MAX_DEBT, {"from": deployer})
 
     zap = ZapEth.deploy(WETH, router, pair, vader, bond, {"from": deployer})
 
