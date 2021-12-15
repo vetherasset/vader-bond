@@ -11,6 +11,7 @@ source venv/bin/activate
 pip install eth-brownie
 pip install matplotlib
 pip install numpy
+pip install prettytable
 
 brownie pm install OpenZeppelin/openzeppelin-contracts@3.4.2
 
