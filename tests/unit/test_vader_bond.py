@@ -168,6 +168,14 @@ def test_bond_terms(chain, deployer, user, bond):
     # undo changes for other tests
     chain.revert()
 
+    # test min price
+    chain.snapshot()
+    tx = bond.setBondTerms(3, 99, {"from": deployer})
+    assert bond.terms()["minPrice"] == 99
+    assert tx.events["SetBondTerms"].values() == [3, 99]
+    # undo changes for other tests
+    chain.revert()
+
 
 def test_set_adjustment(deployer, user, bond):
     with brownie.reverts("not owner"):

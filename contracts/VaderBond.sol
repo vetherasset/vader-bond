@@ -19,7 +19,8 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
     enum PARAMETER {
         VESTING,
         PAYOUT,
-        DEBT
+        DEBT,
+        MIN_PRICE
     }
 
     event Initialize(
@@ -166,6 +167,8 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
             terms.maxPayout = _input;
         } else if (_param == PARAMETER.DEBT) {
             terms.maxDebt = _input;
+        } else if (_param == PARAMETER.MIN_PRICE) {
+            terms.minPrice = _input;
         }
         emit SetBondTerms(_param, _input);
     }
