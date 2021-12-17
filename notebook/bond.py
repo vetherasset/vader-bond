@@ -4,12 +4,12 @@
 # In[12]:
 
 
-get_ipython().system('pip install matplotlib')
-get_ipython().system('pip install numpy')
-get_ipython().system('pip install prettytable')
+# !pip install matplotlib
+# !pip install numpy
+# !pip install prettytable
 
 
-# In[13]:
+# In[16]:
 
 
 from datetime import datetime
@@ -157,19 +157,20 @@ class Bond:
         return payout
 
 
-# In[14]:
+# In[17]:
 
 
 import math
 
 BLOCKS_PER_HOUR = 270
 VADER_TOTAL_SUPPLY = (25 * 10 ** 9) * 10 ** DECIMALS
-SALE = 10 ** 7 * 10 ** DECIMALS
+SALE = 15 * (10 ** 6) * (10 ** DECIMALS)
 
-LP_PRICE_USD = 23.29
-VADER_PRICE_USD = 0.03
+LP_PRICE_USD = 25.0869
+VADER_PRICE_USD = 0.0334
 DISCOUNT = 0.94
-MAX_LP = 1100 * 10 ** PRINCIPAL_DECIMALS
+# max USD / LP_PRICE
+MAX_LP = 1000 * 10 ** PRINCIPAL_DECIMALS
 
 # --- min price ---
 # amount of VADER to receive per LP
@@ -181,17 +182,17 @@ min_price = x * 10 ** PRINCIPAL_DECIMALS
 
 # --- control variable ---
 # initial number of LP to receive before bond price exceeds min price
-D = 10000
+D = 1.0 * VADER_PRICE_USD / LP_PRICE_USD * (SALE / 10 ** DECIMALS)
 control_variable = min_price * (VADER_TOTAL_SUPPLY / (10 ** DECIMALS)) / D
 
 # --- vesting terms ---
-vesting_terms = BLOCKS_PER_HOUR * 24 * 14
+vesting_terms = BLOCKS_PER_HOUR * 24 * 21
 
 # --- max payout % (100% = 1e5) ---
 max_payout = math.ceil(MAX_LP * v / VADER_TOTAL_SUPPLY * 1e5)
 
 # --- max debt ---
-max_debt = (10 * 10 ** 6) * 10 ** DECIMALS
+max_debt = SALE
 assert VADER_TOTAL_SUPPLY * max_payout / 1e5 <= max_debt * 1.0
 
 # --- terms ---
@@ -211,10 +212,11 @@ adj = {
     "last_block": 0
 }
 
-print(terms)
+print("D", D)
+print("terms", terms)
 
 
-# In[32]:
+# In[19]:
 
 
 block = Block()
@@ -240,7 +242,7 @@ debt_ratios = []
 total_debts = []
 
 # num blocks
-N = BLOCKS_PER_HOUR * 24
+N = BLOCKS_PER_HOUR * 24 * 3
 market_price = min_price
 sold = 0
 num_buyers = 0
@@ -256,9 +258,9 @@ for i in range(N):
     else:
         market_price *= 0.99
 
-    market_price = min_price
+#     market_price = min_price
     
-    if sold < SALE and random() > 0.9 and b.bond_price() <= 1.07 * market_price:
+    if sold < SALE and random() > 0.9 and b.bond_price() <= 0.99 * market_price:
         r = random()
         amount = r * MAX_LP
         value = treasury.value_of_token(amount)
