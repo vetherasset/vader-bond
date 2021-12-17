@@ -8,10 +8,11 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./interfaces/IERC20Metadata.sol";
 import "./interfaces/ITreasury.sol";
+import "./interfaces/IVaderBond.sol";
 // import "./lib/FixedPoint.sol";
 import "./Ownable.sol";
 
-contract VaderBond is Ownable, ReentrancyGuard {
+contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
     // using FixedPoint for FixedPoint.uq112x112;
     using SafeERC20 for IERC20;
     using SafeMath for uint;
@@ -19,15 +20,30 @@ contract VaderBond is Ownable, ReentrancyGuard {
     enum PARAMETER {
         VESTING,
         PAYOUT,
-        DEBT
+        DEBT,
+        MIN_PRICE
     }
 
+    event Initialize(
+        uint controlVariable,
+        uint vestingTerm,
+        uint minPrice,
+        uint maxPayout,
+        uint maxDebt,
+        uint inititalDebt,
+        uint lastDecay
+    );
     event SetBondTerms(PARAMETER indexed param, uint input);
     event SetAdjustment(bool add, uint rate, uint target, uint buffer);
     event BondCreated(uint deposit, uint payout, uint expires);
     event BondRedeemed(address indexed recipient, uint payout, uint remaining);
-    event BondPriceChanged(uint internalPrice, uint debtRatio);
-    event ControlVariableAdjustment(uint initialBCV, uint newBCV, uint adjustment, bool addition);
+    event BondPriceChanged(uint price, uint debtRatio);
+    event ControlVariableAdjustment(
+        uint initialBCV,
+        uint newBCV,
+        uint adjustment,
+        bool addition
+    );
     event TreasuryChanged(address treasury);
 
     uint8 private immutable PRINCIPAL_TOKEN_DECIMALS;
@@ -35,6 +51,8 @@ contract VaderBond is Ownable, ReentrancyGuard {
     uint private constant MIN_PAYOUT = 10**PAYOUT_TOKEN_DECIMALS / 100; // 0.01
     uint private constant MAX_PERCENT_VESTED = 1e4; // 1 = 0.01%, 10000 = 100%
     uint private constant MAX_PAYOUT_DENOM = 1e5; // 100 = 0.1%, 100000 = 100%
+    // roughly 36 hours (262 blocks / hour)
+    uint private constant MIN_VESTING_TERMS = 10000;
 
     IERC20 public immutable payoutToken; // token paid for principal
     IERC20 public immutable principalToken; // inflow token
@@ -45,7 +63,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
 
     mapping(address => Bond) public bondInfo; // stores bond information for depositors
 
-    uint public totalDebt; // total value of outstanding bonds; used for pricing
+    uint public totalDebt; // total value of outstanding bonds
     uint public lastDecay; // reference block for debt decay
 
     // Info for creating new bonds
@@ -84,6 +102,9 @@ contract VaderBond is Ownable, ReentrancyGuard {
         principalToken = IERC20(_principalToken);
 
         PRINCIPAL_TOKEN_DECIMALS = IERC20Metadata(_principalToken).decimals();
+
+        // vesting term set to > 0 so that debtDecay() doesn't fail
+        terms.vestingTerm = MIN_VESTING_TERMS;
     }
 
     /**
@@ -95,7 +116,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
      *  @param _maxDebt uint
      *  @param _initialDebt uint
      */
-    function initializeBond(
+    function initialize(
         uint _controlVariable,
         uint _vestingTerm,
         uint _minPrice,
@@ -103,11 +124,10 @@ contract VaderBond is Ownable, ReentrancyGuard {
         uint _maxDebt,
         uint _initialDebt
     ) external onlyOwner {
-        require(terms.controlVariable == 0, "initialized");
+        require(currentDebt() == 0, "debt > 0");
 
         require(_controlVariable > 0, "cv = 0");
-        // roughly 36 hours (262 blocks / hour)
-        require(_vestingTerm >= 10000, "vesting < 10000");
+        require(_vestingTerm >= MIN_VESTING_TERMS, "vesting < min");
         // max payout must be < 1% of total supply of payout token
         require(_maxPayout <= MAX_PAYOUT_DENOM / 100, "max payout > 1%");
 
@@ -121,6 +141,16 @@ contract VaderBond is Ownable, ReentrancyGuard {
 
         totalDebt = _initialDebt;
         lastDecay = block.number;
+
+        emit Initialize(
+            _controlVariable,
+            _vestingTerm,
+            _minPrice,
+            _maxPayout,
+            _maxDebt,
+            _initialDebt,
+            block.number
+        );
     }
 
     /**
@@ -130,8 +160,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
      */
     function setBondTerms(PARAMETER _param, uint _input) external onlyOwner {
         if (_param == PARAMETER.VESTING) {
-            // roughly 36 hours (262 blocks / hour)
-            require(_input >= 10000, "vesting < 10000");
+            require(_input >= MIN_VESTING_TERMS, "vesting < min");
             terms.vestingTerm = _input;
         } else if (_param == PARAMETER.PAYOUT) {
             // max payout must be < 1% of total supply of payout token
@@ -139,6 +168,8 @@ contract VaderBond is Ownable, ReentrancyGuard {
             terms.maxPayout = _input;
         } else if (_param == PARAMETER.DEBT) {
             terms.maxDebt = _input;
+        } else if (_param == PARAMETER.MIN_PRICE) {
+            terms.minPrice = _input;
         }
         emit SetBondTerms(_param, _input);
     }
@@ -157,128 +188,20 @@ contract VaderBond is Ownable, ReentrancyGuard {
         uint _buffer
     ) external onlyOwner {
         require(_rate <= terms.controlVariable.mul(3) / 100, "rate > 3%");
+
         if (_add) {
             require(_target >= terms.controlVariable, "target < cv");
         } else {
             require(_target <= terms.controlVariable, "target > cv");
         }
-        adjustment = Adjust({add: _add, rate: _rate, target: _target, buffer: _buffer, lastBlock: block.number});
-        emit SetAdjustment(_add, _rate, _target, _buffer);
-    }
-
-    /**
-     *  @notice deposit bond
-     *  @param _amount uint
-     *  @param _maxPrice uint
-     *  @param _depositor address
-     *  @return uint
-     *  @dev Deposit resets vesting term for _depositor
-     */
-    function deposit(
-        uint _amount,
-        uint _maxPrice,
-        address _depositor
-    ) external nonReentrant returns (uint) {
-        require(_depositor != address(0), "depositor = zero");
-
-        decayDebt();
-        require(totalDebt <= terms.maxDebt, "max debt");
-        require(_maxPrice >= bondPrice(), "bond price > max");
-
-        uint value = treasury.valueOfToken(address(principalToken), _amount);
-        uint payout = payoutFor(value);
-
-        require(payout >= MIN_PAYOUT, "payout < min");
-        // size protection because there is no slippage
-        require(payout <= maxPayout(), "payout > max");
-
-        principalToken.safeTransferFrom(msg.sender, address(this), _amount);
-        principalToken.approve(address(treasury), _amount);
-        treasury.deposit(address(principalToken), _amount, payout);
-
-        totalDebt = totalDebt.add(value);
-
-        bondInfo[_depositor] = Bond({
-            payout: bondInfo[_depositor].payout.add(payout),
-            vesting: terms.vestingTerm,
+        adjustment = Adjust({
+            add: _add,
+            rate: _rate,
+            target: _target,
+            buffer: _buffer,
             lastBlock: block.number
         });
-
-        emit BondCreated(_amount, payout, block.number.add(terms.vestingTerm));
-
-        uint price = bondPrice();
-        // remove floor if price above min
-        if (price > terms.minPrice && terms.minPrice > 0) {
-            terms.minPrice = 0;
-        }
-
-        emit BondPriceChanged(price, debtRatio());
-
-        adjust(); // control variable is adjusted
-        return payout;
-    }
-
-    /**
-     *  @notice redeem bond for user
-     *  @return uint
-     */
-    function redeem(address _depositor) external nonReentrant returns (uint) {
-        Bond memory info = bondInfo[_depositor];
-        uint percentVested = percentVestedFor(_depositor); // (blocks since last interaction / vesting term remaining)
-
-        if (percentVested >= MAX_PERCENT_VESTED) {
-            // if fully vested
-            delete bondInfo[_depositor]; // delete user info
-            emit BondRedeemed(_depositor, info.payout, 0); // emit bond data
-            payoutToken.transfer(_depositor, info.payout);
-            return info.payout;
-        } else {
-            // if unfinished
-            // calculate payout vested
-            uint payout = info.payout.mul(percentVested) / MAX_PERCENT_VESTED;
-
-            // store updated deposit info
-            bondInfo[_depositor] = Bond({
-                payout: info.payout.sub(payout),
-                vesting: info.vesting.sub(block.number.sub(info.lastBlock)),
-                lastBlock: block.number
-            });
-
-            emit BondRedeemed(_depositor, payout, bondInfo[_depositor].payout);
-            payoutToken.transfer(_depositor, payout);
-            return payout;
-        }
-    }
-
-    function min(uint x, uint y) private returns (uint) {
-        return x <= y ? x : y;
-    }
-
-    function max(uint x, uint y) private returns (uint) {
-        return x >= y ? x : y;
-    }
-
-    /**
-     *  @notice makes incremental adjustment to control variable
-     */
-    function adjust() private {
-        uint blockCanAdjust = adjustment.lastBlock.add(adjustment.buffer);
-        if (adjustment.rate > 0 && block.number >= blockCanAdjust) {
-            uint initial = terms.controlVariable;
-            if (adjustment.add) {
-                terms.controlVariable = min(terms.controlVariable.add(adjustment.rate), adjustment.target);
-                if (terms.controlVariable >= adjustment.target) {
-                    adjustment.rate = 0;
-                }
-            } else {
-                terms.controlVariable = max(terms.controlVariable.sub(adjustment.rate), adjustment.target);
-                if (terms.controlVariable <= adjustment.target) {
-                    adjustment.rate = 0;
-                }
-            }
-            adjustment.lastBlock = block.number;
-            emit ControlVariableAdjustment(initial, terms.controlVariable, adjustment.rate, adjustment.add);
-        }
+        emit SetAdjustment(_add, _rate, _target, _buffer);
     }
 
     /**
@@ -328,7 +251,7 @@ contract VaderBond is Ownable, ReentrancyGuard {
     /**
      *  @notice calculate current bond premium
      *  @return price uint
-     *  @dev price = 10 ** principal token decimals = 1 principal token buys 1 bond
+     *  @dev price = 2 * 10 ** principal token decimals = 2 principal token to buy 1 bond
      */
     function bondPrice() public view returns (uint price) {
         // NOTE: debt ratio scaled up with 1e18, so divide by 1e18
@@ -343,7 +266,8 @@ contract VaderBond is Ownable, ReentrancyGuard {
      *  @return uint
      */
     function maxPayout() public view returns (uint) {
-        return payoutToken.totalSupply().mul(terms.maxPayout) / MAX_PAYOUT_DENOM;
+        return
+            payoutToken.totalSupply().mul(terms.maxPayout) / MAX_PAYOUT_DENOM;
     }
 
     /**
@@ -356,16 +280,98 @@ contract VaderBond is Ownable, ReentrancyGuard {
         // NOTE: scaled up by 1e7
         // return FixedPoint.fraction(_value, bondPrice()).decode112with18() / 1e11;
 
-        /*
-        B = amount of bond to payout
-        A = amount of principal token in
-        P = amount of principal token to pay to get 1 bond
-
-        B = A / P
-        */
-        // NOTE: decimals of value must match payout token decimals
-        // NOTE: bond price must match principal token decimals
+        // NOTE: decimals of value must have payout token decimals
+        // NOTE: bond price must have principal token decimals
         return _value.mul(10**PRINCIPAL_TOKEN_DECIMALS).div(bondPrice());
+    }
+
+    function min(uint x, uint y) private returns (uint) {
+        return x <= y ? x : y;
+    }
+
+    function max(uint x, uint y) private returns (uint) {
+        return x >= y ? x : y;
+    }
+
+    /**
+     *  @notice makes incremental adjustment to control variable
+     */
+    function adjust() private {
+        uint blockCanAdjust = adjustment.lastBlock.add(adjustment.buffer);
+        if (adjustment.rate > 0 && block.number >= blockCanAdjust) {
+            uint cv = terms.controlVariable;
+            uint target = adjustment.target;
+            if (adjustment.add) {
+                terms.controlVariable = min(cv.add(adjustment.rate), target);
+                if (terms.controlVariable >= target) {
+                    adjustment.rate = 0;
+                }
+            } else {
+                terms.controlVariable = max(cv.sub(adjustment.rate), target);
+                if (terms.controlVariable <= target) {
+                    adjustment.rate = 0;
+                }
+            }
+            adjustment.lastBlock = block.number;
+            emit ControlVariableAdjustment(
+                cv,
+                terms.controlVariable,
+                adjustment.rate,
+                adjustment.add
+            );
+        }
+    }
+
+    /**
+     *  @notice deposit bond
+     *  @param _amount uint
+     *  @param _maxPrice uint
+     *  @param _depositor address
+     *  @return uint
+     *  @dev Deposit resets vesting term for _depositor
+     */
+    function deposit(
+        uint _amount,
+        uint _maxPrice,
+        address _depositor
+    ) external override nonReentrant returns (uint) {
+        require(_depositor != address(0), "depositor = zero");
+        require(_amount > 0, "amount = 0");
+
+        decayDebt();
+        require(totalDebt <= terms.maxDebt, "max debt");
+        require(_maxPrice >= bondPrice(), "bond price > max");
+
+        uint value = treasury.valueOfToken(address(principalToken), _amount);
+        uint payout = payoutFor(value);
+
+        require(payout >= MIN_PAYOUT, "payout < min");
+        require(payout <= maxPayout(), "payout > max");
+
+        principalToken.safeTransferFrom(msg.sender, address(this), _amount);
+        principalToken.approve(address(treasury), _amount);
+        treasury.deposit(address(principalToken), _amount, payout);
+
+        totalDebt = totalDebt.add(value);
+
+        bondInfo[_depositor] = Bond({
+            payout: bondInfo[_depositor].payout.add(payout),
+            vesting: terms.vestingTerm,
+            lastBlock: block.number
+        });
+
+        emit BondCreated(_amount, payout, block.number.add(terms.vestingTerm));
+
+        uint price = bondPrice();
+        // remove floor if price above min
+        if (price > terms.minPrice && terms.minPrice > 0) {
+            terms.minPrice = 0;
+        }
+
+        emit BondPriceChanged(price, debtRatio());
+
+        adjust();
+        return payout;
     }
 
     /**
@@ -373,14 +379,19 @@ contract VaderBond is Ownable, ReentrancyGuard {
      *  @param _depositor address
      *  @return percentVested uint
      */
-    function percentVestedFor(address _depositor) public view returns (uint percentVested) {
+    function percentVestedFor(address _depositor)
+        public
+        view
+        returns (uint percentVested)
+    {
         Bond memory bond = bondInfo[_depositor];
         uint blocksSinceLast = block.number.sub(bond.lastBlock);
         uint vesting = bond.vesting;
         if (vesting > 0) {
-            percentVested = blocksSinceLast.mul(MAX_PERCENT_VESTED).div(vesting);
+            percentVested = blocksSinceLast.mul(MAX_PERCENT_VESTED).div(
+                vesting
+            );
         }
-        // default percentVested = 0
     }
 
     /**
@@ -399,6 +410,34 @@ contract VaderBond is Ownable, ReentrancyGuard {
     }
 
     /**
+     *  @notice redeem bond for user
+     *  @return uint
+     */
+    function redeem(address _depositor) external nonReentrant returns (uint) {
+        Bond memory info = bondInfo[_depositor];
+        uint percentVested = percentVestedFor(_depositor);
+
+        if (percentVested >= MAX_PERCENT_VESTED) {
+            delete bondInfo[_depositor];
+            emit BondRedeemed(_depositor, info.payout, 0);
+            payoutToken.transfer(_depositor, info.payout);
+            return info.payout;
+        } else {
+            uint payout = info.payout.mul(percentVested) / MAX_PERCENT_VESTED;
+
+            bondInfo[_depositor] = Bond({
+                payout: info.payout.sub(payout),
+                vesting: info.vesting.sub(block.number.sub(info.lastBlock)),
+                lastBlock: block.number
+            });
+
+            emit BondRedeemed(_depositor, payout, bondInfo[_depositor].payout);
+            payoutToken.transfer(_depositor, payout);
+            return payout;
+        }
+    }
+
+    /**
      *  @notice owner can update treasury address
      *  @param _treasury address
      *  @dev allow new treasury to be zero address
@@ -413,9 +452,11 @@ contract VaderBond is Ownable, ReentrancyGuard {
      *  @notice allows owner to send lost tokens to owner
      *  @param _token address
      */
-    function recoverLostToken(address _token) external onlyOwner {
-        require(_token != address(principalToken), "protected");
+    function recover(address _token) external onlyOwner {
         require(_token != address(payoutToken), "protected");
-        IERC20(_token).safeTransfer(owner, IERC20(_token).balanceOf(address(this)));
+        IERC20(_token).safeTransfer(
+            msg.sender,
+            IERC20(_token).balanceOf(address(this))
+        );
     }
 }

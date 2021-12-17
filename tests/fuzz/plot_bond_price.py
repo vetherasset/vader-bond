@@ -5,25 +5,26 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 ## Terms
-CONTROL_VAR = 1e6
+CONTROL_VAR = int(3 * 1e21)
 VESTING_TERM = 10000
-MIN_PRICE = 0.1 * 1e6
+MIN_PRICE = int(0.001 * 1e18)
 MAX_PAYOUT = 1000
-MAX_DEBT = 2 * 1e9 * 1e18
-INITIAL_DEBT = 2 * 1e6 * 1e18
-PAYOUT_TOTAL_SUPPLY = 2 * 1e6 * 1e18
+MAX_DEBT = int(1e9 * 1e18)
+INITIAL_DEBT = 0
+PAYOUT_TOTAL_SUPPLY = int(25 * 1e9 * 1e18)
 
 ## Adjustment
 ADD = True
-RATE = CONTROL_VAR * 3 / 100
+RATE = int(0.03 * CONTROL_VAR)
 TARGET = CONTROL_VAR * 2
 BUFFER = 1
 
 
-def test(chain, deployer, user, bond, treasury, principalToken, payoutToken):
+def test(chain, deployer, user, bond, treasury, principalToken, vader):
     treasury.setBondContract(bond, True, {"from": deployer})
+    treasury.setMaxPayout(bond, MAX_DEBT, {"from": deployer})
 
-    bond.initializeBond(
+    bond.initialize(
         CONTROL_VAR,
         VESTING_TERM,
         MIN_PRICE,
@@ -41,7 +42,7 @@ def test(chain, deployer, user, bond, treasury, principalToken, payoutToken):
         {"from": deployer},
     )
 
-    payoutToken.mint(treasury, PAYOUT_TOTAL_SUPPLY)
+    vader.mint(treasury, MAX_DEBT)
 
     principalToken.mint(user, 2 ** 256 - 1)
     principalToken.approve(bond, 2 ** 256 - 1, {"from": user})
@@ -60,18 +61,18 @@ def test(chain, deployer, user, bond, treasury, principalToken, payoutToken):
         price = bond.bondPrice()
         cv = bond.terms()["controlVariable"]
         # normalized
-        print("block", block, debt_ratio / 1e18, price / 1e6, cv / 1e6)
+        print("block", block, debt_ratio / 1e18, price / 1e18, cv / 1e18)
 
         blocks.append(block)
         debt_ratios.append(debt_ratio / 1e18)
-        prices.append(price / 1e6)
-        cvs.append(cv / 1e6)
+        prices.append(price / 1e18)
+        cvs.append(cv / 1e18)
 
     for j in range(10):
         print("--- deposit ---")
         for i in range(10):
             snapshot()
-            bond.deposit(10000 * 1e6, max_price, user, {"from": user})
+            bond.deposit(1000 * 1e18, max_price, user, {"from": user})
             block += 1
 
         print("--- wait ---")

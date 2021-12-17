@@ -25,9 +25,9 @@ contract Ownable {
     function acceptOwnership() external {
         require(msg.sender == nominatedOwner, "not nominated");
 
-        owner = nominatedOwner;
+        owner = msg.sender;
         nominatedOwner = address(0);
 
-        emit OwnerChanged(owner);
+        emit OwnerChanged(msg.sender);
     }
 }

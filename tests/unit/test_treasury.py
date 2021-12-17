@@ -1,6 +1,8 @@
 import brownie
 from brownie import Treasury, ZERO_ADDRESS
 
+MAX_PAYOUT = 10 ** 18
+
 
 def test_constructor(deployer, payoutToken):
     with brownie.reverts("payout token = zero"):
@@ -25,6 +27,19 @@ def test_set_bond_contract(deployer, treasury, user):
 
     with brownie.reverts("no change"):
         treasury.setBondContract(user, True, {"from": deployer})
+
+
+def test_set_max_payout(deployer, treasury, user):
+    with brownie.reverts("not owner"):
+        treasury.setMaxPayout(user, 0, {"from": user})
+
+    with brownie.reverts("not bond"):
+        treasury.setMaxPayout(ZERO_ADDRESS, 0, {"from": deployer})
+
+    tx = treasury.setMaxPayout(user, MAX_PAYOUT, {"from": deployer})
+
+    assert treasury.maxPayouts(user) == MAX_PAYOUT
+    assert tx.events["SetMaxPayout"].values() == [user, MAX_PAYOUT]
 
 
 def test_deposit(deployer, treasury, principalToken, payoutToken, user):
@@ -60,12 +75,21 @@ def test_deposit(deployer, treasury, principalToken, payoutToken, user):
     assert after["payoutToken"]["user"] == before["payoutToken"]["user"] + 456
     assert after["payoutToken"]["treasury"] == before["payoutToken"]["treasury"] - 456
 
+    # test total payout > max
+    treasury.setMaxPayout(user, 0, {"from": deployer})
+
+    with brownie.reverts("total payout > max"):
+        treasury.deposit(principalToken, 123, 456, {"from": user})
+
 
 def test_withdraw(deployer, treasury, principalToken, user, dest):
     principalToken.mint(treasury, 123, {"from": deployer})
 
     with brownie.reverts("not owner"):
         treasury.withdraw(principalToken, dest, 123, {"from": user})
+
+    with brownie.reverts("dest = zero address"):
+        treasury.withdraw(principalToken, ZERO_ADDRESS, 123, {"from": deployer})
 
     def snapshot():
         return {
@@ -87,6 +111,20 @@ def test_withdraw(deployer, treasury, principalToken, user, dest):
 
     assert len(tx.events) == 2
     assert tx.events["Withdraw"].values() == [principalToken, dest, 123]
+
+
+def test_reset_payout(deployer, treasury, user):
+    with brownie.reverts("not owner"):
+        treasury.resetPayout(user, {"from": user})
+
+    with brownie.reverts("not bond"):
+        treasury.resetPayout(ZERO_ADDRESS, {"from": deployer})
+
+    assert treasury.payouts(user) > 0
+    tx = treasury.resetPayout(user)
+
+    assert treasury.payouts(user) == 0
+    assert tx.events["ResetPayout"].values() == [user, 456]
 
 
 def test_value_of_token(treasury, payoutToken, principalToken):
