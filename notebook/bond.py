@@ -9,7 +9,7 @@
 # !pip install prettytable
 
 
-# In[16]:
+# In[1]:
 
 
 from datetime import datetime
@@ -157,7 +157,7 @@ class Bond:
         return payout
 
 
-# In[17]:
+# In[9]:
 
 
 import math
@@ -168,9 +168,9 @@ SALE = 15 * (10 ** 6) * (10 ** DECIMALS)
 
 LP_PRICE_USD = 25.0869
 VADER_PRICE_USD = 0.0334
-DISCOUNT = 0.94
-# max USD / LP_PRICE
-MAX_LP = 1000 * 10 ** PRINCIPAL_DECIMALS
+DISCOUNT = 0.92
+MAX_USD = 50000
+MAX_LP = MAX_USD / LP_PRICE_USD * 10 ** PRINCIPAL_DECIMALS
 
 # --- min price ---
 # amount of VADER to receive per LP
@@ -212,11 +212,12 @@ adj = {
     "last_block": 0
 }
 
+print("max LP", MAX_LP / 10 ** DECIMALS)
 print("D", D)
 print("terms", terms)
 
 
-# In[19]:
+# In[11]:
 
 
 block = Block()
@@ -258,9 +259,9 @@ for i in range(N):
     else:
         market_price *= 0.99
 
-#     market_price = min_price
+    market_price = min_price
     
-    if sold < SALE and random() > 0.9 and b.bond_price() <= 0.99 * market_price:
+    if sold < SALE and random() > 0.9 and b.bond_price() <= 1.05 * market_price:
         r = random()
         amount = r * MAX_LP
         value = treasury.value_of_token(amount)
