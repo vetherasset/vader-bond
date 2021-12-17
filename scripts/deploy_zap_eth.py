@@ -1,4 +1,5 @@
 from brownie import ZapEth, accounts, network
+import os
 
 CONTRACTS = {
     "kovan": {
@@ -12,14 +13,14 @@ CONTRACTS = {
         "weth": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
         "router": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
         "pair": "0x452c60e1E3Ae0965Cd27dB1c7b3A525d197Ca0Aa",
-        "vader": "",
-        "bond": "",
+        "vader": "0x2602278EE1882889B946eb11DC0E810075650983",
+        "bond": "0x1B96d82b8b13C75d4cE347a53284B10d93B63684",
     },
 }
 
 
 def main():
-    account = accounts.load("dev")
+    account = accounts.load(os.getenv("ACCOUNT"))
     print(f"account: {account}")
 
     net = network.show_active()

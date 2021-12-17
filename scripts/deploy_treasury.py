@@ -1,4 +1,5 @@
 from brownie import Treasury, accounts, network
+import os
 
 VADER = {
     "kovan": "0xB46dbd07ce34813623FB0643b21DCC8D0268107D",
@@ -7,7 +8,7 @@ VADER = {
 
 
 def main():
-    account = accounts.load("dev")
+    account = accounts.load(os.getenv("ACCOUNT"))
     print(f"account: {account}")
 
     net = network.show_active()

@@ -18,6 +18,7 @@ ROUTER = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 
 
 def test_zap_eth(deployer, lp, vader, vader_whale, user):
+    # TODO: test with mainnet treasury and bond
     treasury = Treasury.deploy(vader, {"from": deployer})
     bond = VaderBond.deploy(treasury, vader, lp, {"from": deployer})
 
