@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[12]:
+# In[1]:
 
 
 # !pip install matplotlib
@@ -9,7 +9,7 @@
 # !pip install prettytable
 
 
-# In[1]:
+# In[2]:
 
 
 from datetime import datetime
@@ -157,7 +157,7 @@ class Bond:
         return payout
 
 
-# In[9]:
+# In[3]:
 
 
 import math
@@ -166,8 +166,8 @@ BLOCKS_PER_HOUR = 270
 VADER_TOTAL_SUPPLY = (25 * 10 ** 9) * 10 ** DECIMALS
 SALE = 15 * (10 ** 6) * (10 ** DECIMALS)
 
-LP_PRICE_USD = 25.0869
-VADER_PRICE_USD = 0.0334
+LP_PRICE_USD = 24.1
+VADER_PRICE_USD = 0.032
 DISCOUNT = 0.92
 MAX_USD = 50000
 MAX_LP = MAX_USD / LP_PRICE_USD * 10 ** PRINCIPAL_DECIMALS
@@ -217,7 +217,7 @@ print("D", D)
 print("terms", terms)
 
 
-# In[11]:
+# In[4]:
 
 
 block = Block()
