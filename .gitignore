@@ -10,4 +10,5 @@ package-lock.json
 venv
 .vscode
 memo
+tmp
 bond-price.png
