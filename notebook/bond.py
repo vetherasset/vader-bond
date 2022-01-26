@@ -157,7 +157,7 @@ class Bond:
         return payout
 
 
-# In[33]:
+# In[3]:
 
 
 import math
@@ -235,7 +235,7 @@ print("Price:", terms["control_variable"] * D / VADER_TOTAL_SUPPLY / 10 ** PRINC
 print("terms:", json.dumps(terms, indent=2))
 
 
-# In[34]:
+# In[5]:
 
 
 block = Block()
@@ -281,7 +281,7 @@ for i in range(N):
     
     if sold < SALE and random() > 0.9 and b.bond_price() <= 1.05 * market_price:
         r = random()
-        amount = r * MAX_LP
+        amount = r * MAX_LP_PER_DEPOSIT
         value = treasury.value_of_token(amount)
         payout = b.payout_for(value)
         
