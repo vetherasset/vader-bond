@@ -9,11 +9,9 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./interfaces/IERC20Metadata.sol";
 import "./interfaces/ITreasury.sol";
 import "./interfaces/IVaderBond.sol";
-// import "./lib/FixedPoint.sol";
 import "./Ownable.sol";
 
 contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
-    // using FixedPoint for FixedPoint.uq112x112;
     using SafeERC20 for IERC20;
     using SafeMath for uint;
 
@@ -238,11 +236,6 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
      *  @return uint
      */
     function debtRatio() public view returns (uint) {
-        // TODO: use fraction?
-        // return
-        //     FixedPoint
-        //         .fraction(currentDebt().mul(10**PAYOUT_TOKEN_DECIMALS), payoutToken.totalSupply())
-        //         .decode112with18() / 1e18;
         // NOTE: debt ratio is scaled up by 1e18
         // NOTE: fails if payoutToken.totalSupply() == 0
         return currentDebt().mul(1e18).div(payoutToken.totalSupply());
@@ -276,10 +269,6 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
      *  @return uint
      */
     function payoutFor(uint _value) public view returns (uint) {
-        // TODO: use fraction?
-        // NOTE: scaled up by 1e7
-        // return FixedPoint.fraction(_value, bondPrice()).decode112with18() / 1e11;
-
         // NOTE: decimals of value must have payout token decimals
         // NOTE: bond price must have principal token decimals
         return _value.mul(10**PRINCIPAL_TOKEN_DECIMALS).div(bondPrice());
