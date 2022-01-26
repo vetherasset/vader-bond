@@ -58,9 +58,10 @@ env $(cat .env) ACCOUNT=dev brownie run scripts/deploy_vader_bond.py --network k
 1. Deploy `Treasury`
 2. Deploy `VaderBond`
 3. Call `Treasury.setBondContract`
-4. Call `Treasury.setMaxPayout`
-5. Send Vader to `Treasury`
-6. Call `VaderBond.initialize`
+4. Set max payout to 0 `VaderBond.setBondTerm(1, 0)`
+5. Call `Treasury.setMaxPayout`
+6. Send Vader to `Treasury`
+7. Call `VaderBond.initialize`
 
 ##### Mainet
 
