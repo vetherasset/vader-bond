@@ -13,15 +13,11 @@ import "./Pausable.sol";
 contract ZapUniswapV2EthLp is Ownable, Pausable, ReentrancyGuard {
     using SafeMath for uint;
 
-    // 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
     address public immutable WETH;
 
-    // 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
     IUniswapV2Router public immutable router;
-    // 0x452c60e1E3Ae0965Cd27dB1c7b3A525d197Ca0Aa
     IUniswapV2Pair public immutable pair;
 
-    // 0x2602278EE1882889B946eb11DC0E810075650983
     IERC20 public immutable vader;
     IVaderBond public immutable bond;
 
