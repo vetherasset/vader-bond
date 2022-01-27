@@ -8,13 +8,10 @@ import "./interfaces/IUniswapV2Router.sol";
 import "./interfaces/IUniswapV2Pair.sol";
 import "./interfaces/IVaderBond.sol";
 import "./Ownable.sol";
+import "./Pausable.sol";
 
-contract ZapUniswapV2EthLp is Ownable, ReentrancyGuard {
+contract ZapUniswapV2EthLp is Ownable, Pausable, ReentrancyGuard {
     using SafeMath for uint;
-
-    event Pause(bool _paused);
-
-    bool public paused;
 
     // 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
     address public immutable WETH;
@@ -52,28 +49,16 @@ contract ZapUniswapV2EthLp is Ownable, ReentrancyGuard {
         IERC20(_pair).approve(_bond, type(uint).max);
     }
 
-    modifier whenPaused() {
-        require(paused, "not paused");
-        _;
-    }
-
-    modifier whenNotPaused() {
-        require(!paused, "paused");
-        _;
-    }
-
-    function pause() external onlyOwner whenNotPaused {
-        paused = true;
-        emit Pause(true);
-    }
-
-    function unpause() external onlyOwner whenPaused {
-        paused = false;
-        emit Pause(false);
-    }
-
     // Uniswap may refund
     receive() external payable {}
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
 
     function _sqrt(uint y) private pure returns (uint z) {
         if (y > 3) {
