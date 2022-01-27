@@ -13,20 +13,13 @@ contract ZapEth is Ownable, Pausable, ReentrancyGuard {
     using SafeMath for uint;
 
     IWETH public immutable weth;
-
-    IERC20 public immutable vader;
     IVaderBond public immutable bond;
 
-    constructor(
-        address _weth,
-        address _vader,
-        address _bond
-    ) {
+    constructor(address _weth, address _bond) {
         require(_weth != address(0), "weth = zero address");
         require(_bond != address(0), "bond = zero address");
 
         weth = IWETH(_weth);
-        vader = IERC20(_vader);
         bond = IVaderBond(_bond);
 
         // vader bond deposit
