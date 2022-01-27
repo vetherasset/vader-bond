@@ -1,4 +1,4 @@
-from brownie import ZapEth, accounts, network
+from brownie import ZapUniswapV2EthLp, accounts, network
 import os
 
 CONTRACTS = {
@@ -26,7 +26,7 @@ def main():
     net = network.show_active()
     contracts = CONTRACTS[net]
 
-    ZapEth.deploy(
+    ZapUniswapV2EthLp.deploy(
         contracts["weth"],
         contracts["router"],
         contracts["pair"],
