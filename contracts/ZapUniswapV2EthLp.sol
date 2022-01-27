@@ -9,7 +9,7 @@ import "./interfaces/IUniswapV2Pair.sol";
 import "./interfaces/IVaderBond.sol";
 import "./Ownable.sol";
 
-contract ZapEth is Ownable, ReentrancyGuard {
+contract ZapUniswapV2EthLp is Ownable, ReentrancyGuard {
     using SafeMath for uint;
 
     event Pause(bool _paused);

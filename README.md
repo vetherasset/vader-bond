@@ -69,7 +69,7 @@ env $(cat .env) ACCOUNT=dev brownie run scripts/deploy_vader_bond.py --network k
 -   Treasury: 0x8a2afC7a4c2C19E81a79D9158d6bca3858a87B73
 -   Vader: 0x2602278EE1882889B946eb11DC0E810075650983
 -   VaderBond: 0x1B96d82b8b13C75d4cE347a53284B10d93B63684
--   ZapEth: 0x781B2844605298FB45C653Dc1EF0d0b941293323
+-   ZapUniswapV2EthLp: 0x781B2844605298FB45C653Dc1EF0d0b941293323
 
 ##### Kovan
 
@@ -77,7 +77,7 @@ env $(cat .env) ACCOUNT=dev brownie run scripts/deploy_vader_bond.py --network k
 -   Treasury: 0x666266f24E17d9ab7bCb25715C75146143E16c39
 -   Vader: 0xB46dbd07ce34813623FB0643b21DCC8D0268107D
 -   VaderBond: 0xd932cc11F49df7638999E2a313e5808667363750
--   ZapEth: 0x6D51Ef96C362fdea02c61Ce2dD1A263B5ABbd4B9
+-   ZapUniswapV2EthLp: 0x6D51Ef96C362fdea02c61Ce2dD1A263B5ABbd4B9
 
 ### Misc
 
