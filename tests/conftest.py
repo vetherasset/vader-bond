@@ -5,6 +5,7 @@ from brownie import (
     Treasury,
     VaderBond,
     ZapUniswapV2EthLp,
+    TestPausable,
     TestToken,
     TestVader,
     MockRouter,
@@ -31,6 +32,11 @@ def dest(accounts):
 @pytest.fixture(scope="module")
 def ownable(deployer):
     yield Ownable.deploy({"from": deployer})
+
+
+@pytest.fixture(scope="module")
+def pausable(deployer):
+    yield TestPausable.deploy({"from": deployer})
 
 
 @pytest.fixture(scope="module")
