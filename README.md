@@ -81,7 +81,7 @@ env $(cat .env) ACCOUNT=dev brownie run scripts/deploy_vader_bond.py --network k
 -   VaderBond - Uniswap V2 ETH LP: 0xd932cc11F49df7638999E2a313e5808667363750
 -   ZapUniswapV2EthLp: 0x6D51Ef96C362fdea02c61Ce2dD1A263B5ABbd4B9
 -   VaderBond - ETH: 0xA8ac19C394783EAcDD36e53686Db037715c87fcD
--   ZapEth:
+-   ZapEth: 0x05191774a53c629d9c9ea90e3D4BC54b6863Fd60
 
 ### Misc
 
