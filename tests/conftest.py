@@ -4,6 +4,7 @@ from brownie import (
     Ownable,
     Treasury,
     VaderBond,
+    PreCommit,
     ZapUniswapV2EthLp,
     TestPausable,
     TestToken,
@@ -49,6 +50,21 @@ def bond(deployer, treasury, payoutToken, principalToken):
     yield VaderBond.deploy(treasury, payoutToken, principalToken, {"from": deployer})
 
 
+@pytest.fixture(scope="module")
+def preCommit(deployer, bond, principalToken):
+    max_commits = 60
+    min_amount_in = 1e18
+    max_amount_in = 100 * 1e18
+    yield PreCommit.deploy(
+        bond,
+        principalToken,
+        max_commits,
+        min_amount_in,
+        max_amount_in,
+        {"from": deployer},
+    )
+
+
 WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 
 
@@ -74,6 +90,11 @@ def principalToken(deployer):
 @pytest.fixture(scope="module")
 def vader(payoutToken):
     yield payoutToken
+
+
+@pytest.fixture(scope="module")
+def tokenIn(principalToken):
+    yield principalToken
 
 
 @pytest.fixture(scope="module")
