@@ -89,7 +89,7 @@ env $(cat .env) ACCOUNT=dev brownie run scripts/deploy_vader_bond.py --network k
 -   Vader: 0xF79c9406c14AF5Aa8b3F1E5E538A026aDf4D0ff5
 -   Treasury: 0xEa66FB7590147A5C901E14034f243e1cF8f958ff
 -   VaderBond: 0x0A23bde5E3930EfEaa546A4b4F10a1b7A9cC1e6C
--   PreCommit:
+-   PreCommit: 0x795bE6b0BF54AF587385604B9DB869E797db69E0
 
 ### Misc
 
