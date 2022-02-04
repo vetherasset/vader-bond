@@ -79,7 +79,6 @@ contract PreCommit is Ownable {
         commits.pop();
 
         total = total.sub(commit.amount);
-        // TODO: check memory safe?
         tokenIn.safeTransfer(msg.sender, commit.amount);
     }
 
