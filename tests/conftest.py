@@ -52,9 +52,9 @@ def bond(deployer, treasury, payoutToken, principalToken):
 
 @pytest.fixture(scope="module")
 def preCommit(deployer, bond, principalToken):
-    max_commits = 60
-    min_amount_in = 1e18
-    max_amount_in = 100 * 1e18
+    max_commits = 50
+    min_amount_in = 0.01 * 10 ** 18
+    max_amount_in = 10 * 10 ** 18
     yield PreCommit.deploy(
         bond,
         principalToken,

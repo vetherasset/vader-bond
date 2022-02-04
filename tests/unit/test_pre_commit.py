@@ -1,11 +1,11 @@
 import brownie
 from brownie import TestToken
 
-MAX_COMMITS = 60
-MIN_AMOUNT_IN = 10 ** 18
-MAX_AMOUNT_IN = 100 * 10 ** 18
+MAX_COMMITS = 50
+MIN_AMOUNT_IN = int(0.01 * 10 ** 18)
+MAX_AMOUNT_IN = int(10 * 10 ** 18)
 
-MAX_DEBT = 25 * 10 ** 9 * 10 ** 18
+MAX_DEBT = int(25 * 10 ** 9 * 10 ** 18)
 
 
 def test_constructor(deployer, preCommit, bond, tokenIn):
@@ -70,11 +70,11 @@ def test_init(preCommit, bond, treasury, vader, tokenIn, deployer, user, account
     treasury.setMaxPayout(bond, MAX_DEBT, {"from": deployer})
     vader.mint(treasury, MAX_DEBT)
 
-    control_var = 3 * 10 ** 21
+    control_var = 5 * 10 ** 10
     vesting_term = 10000
-    min_price = 0.001 * 10 ** 18
+    min_price = 1e11
     max_payout = 1000
-    max_debt = 1e7 * 10 ** 18
+    max_debt = 5 * 10 ** 25
     initial_debt = 0
 
     with brownie.reverts("not owner"):
@@ -94,7 +94,8 @@ def test_init(preCommit, bond, treasury, vader, tokenIn, deployer, user, account
     for i in range(MAX_COMMITS):
         _i = i % len(accounts)
         user = accounts[_i]
-        amount = MAX_AMOUNT_IN
+        # amount = MAX_AMOUNT_IN
+        amount = MIN_AMOUNT_IN
 
         data[_i]["amount"] += amount
 
@@ -159,16 +160,16 @@ def test_nominate_bond_owner(preCommit, bond, deployer, user):
     assert bond.nominatedOwner() == deployer
 
 
-def test_reset(preCommit, deployer, user):
-    with brownie.reverts("not owner"):
-        preCommit.reset({"from": user})
+# def test_reset(preCommit, deployer, user):
+#     with brownie.reverts("not owner"):
+#         preCommit.reset({"from": user})
 
-    preCommit.reset({"from": deployer})
+#     preCommit.reset({"from": deployer})
 
-    assert not preCommit.started()
+#     assert not preCommit.started()
 
-    with brownie.reverts("not started"):
-        preCommit.reset({"from": deployer})
+#     with brownie.reverts("not started"):
+#         preCommit.reset({"from": deployer})
 
 
 def test_recover(deployer, user, preCommit, payoutToken):
