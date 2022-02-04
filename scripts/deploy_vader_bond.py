@@ -10,6 +10,11 @@ CONTRACTS = {
         # WETH
         "principal": "0xd0A1E359811322d97991E03f863a0C30C2cF029C",
     },
+    "rinkeby": {
+        "treasury": "0xEa66FB7590147A5C901E14034f243e1cF8f958ff",
+        "vader": "0xF79c9406c14AF5Aa8b3F1E5E538A026aDf4D0ff5",
+        "principal": "0xE8bD273f54a990007b1069a15b66B584abc86e04",
+    },
     "mainnet": {
         "treasury": "0x8a2afC7a4c2C19E81a79D9158d6bca3858a87B73",
         "vader": "0x2602278EE1882889B946eb11DC0E810075650983",

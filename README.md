@@ -83,6 +83,14 @@ env $(cat .env) ACCOUNT=dev brownie run scripts/deploy_vader_bond.py --network k
 -   VaderBond - ETH: 0xA8ac19C394783EAcDD36e53686Db037715c87fcD
 -   ZapEth: 0x05191774a53c629d9c9ea90e3D4BC54b6863Fd60
 
+##### Rinkeby
+
+-   TestToken: 0xE8bD273f54a990007b1069a15b66B584abc86e04
+-   Vader: 0xF79c9406c14AF5Aa8b3F1E5E538A026aDf4D0ff5
+-   Treasury: 0xEa66FB7590147A5C901E14034f243e1cF8f958ff
+-   VaderBond: 0x0A23bde5E3930EfEaa546A4b4F10a1b7A9cC1e6C
+-   PreCommit:
+
 ### Misc
 
 ```shell
