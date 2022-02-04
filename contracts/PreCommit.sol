@@ -73,7 +73,7 @@ contract PreCommit is Ownable {
 
         // replace commits[index] with last commit
         uint last = commits.length.sub(1);
-        if (last > 0) {
+        if (_index != last) {
             commits[_index] = commits[last];
         }
         commits.pop();
