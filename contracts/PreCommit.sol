@@ -37,6 +37,14 @@ contract PreCommit is Ownable {
         require(_maxAmountIn >= _minAmountIn, "min > max");
         bond = IVaderBond(_bond);
         tokenIn = IERC20(_tokenIn);
+        // a = amount to commit
+        // v = treasury.valueOf(a)
+        // p = bond.payoutFor(v)
+        //   = v / bond price
+        // min amount in = a such that p >= 0.01 Vader
+        // max amount in = a such that p <= bond.maxPayout()
+        //                                = % of vader total supply
+        // bond total debt >= max commits * max amount in
         maxCommits = _maxCommits;
         minAmountIn = _minAmountIn;
         maxAmountIn = _maxAmountIn;
@@ -107,12 +115,7 @@ contract PreCommit is Ownable {
         Commit[] memory _commits = commits;
         uint l = commits.length;
         for (uint i; i < l; i++) {
-            // TODO: max bond price?
-            bond.deposit(
-                _commits[i].amount,
-                type(uint).max,
-                _commits[i].depositor
-            );
+            bond.deposit(_commits[i].amount, _minPrice, _commits[i].depositor);
         }
 
         delete commits;
