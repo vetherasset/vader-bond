@@ -1,5 +1,5 @@
 import brownie
-from brownie import TestToken
+from brownie import ZERO_ADDRESS, TestToken
 
 MAX_COMMITS = 50
 MIN_AMOUNT_IN = int(0.01 * 10 ** 18)
@@ -20,17 +20,20 @@ def test_constructor(deployer, preCommit, bond, tokenIn):
 
 
 def test_commit(preCommit, tokenIn, user):
+    with brownie.reverts("depositor = zero address"):
+        preCommit.commit(ZERO_ADDRESS, MIN_AMOUNT_IN, {"from": user})
+
     with brownie.reverts("amount < min"):
-        preCommit.commit(MIN_AMOUNT_IN - 1, {"from": user})
+        preCommit.commit(user, MIN_AMOUNT_IN - 1, {"from": user})
 
     with brownie.reverts("amount > max"):
-        preCommit.commit(MAX_AMOUNT_IN + 1, {"from": user})
+        preCommit.commit(user, MAX_AMOUNT_IN + 1, {"from": user})
 
     amount = MAX_AMOUNT_IN
     tokenIn.mint(user, amount)
     tokenIn.approve(preCommit, amount, {"from": user})
 
-    preCommit.commit(amount, {"from": user})
+    preCommit.commit(user, amount, {"from": user})
 
     assert tokenIn.balanceOf(preCommit) == amount
     commit = preCommit.commits(0)
@@ -102,7 +105,7 @@ def test_init(preCommit, bond, treasury, vader, tokenIn, deployer, user, account
         tokenIn.mint(user, amount)
         tokenIn.approve(preCommit, amount, {"from": user})
 
-        preCommit.commit(amount, {"from": user})
+        preCommit.commit(user, amount, {"from": user})
 
     total = preCommit.total()
 
@@ -144,7 +147,7 @@ def test_init(preCommit, bond, treasury, vader, tokenIn, deployer, user, account
 
     # test cannot commit after start
     with brownie.reverts("started"):
-        preCommit.commit(MIN_AMOUNT_IN, {"from": user})
+        preCommit.commit(user, MIN_AMOUNT_IN, {"from": user})
 
     # test cannot uncommit after start
     with brownie.reverts("started"):
@@ -160,16 +163,16 @@ def test_nominate_bond_owner(preCommit, bond, deployer, user):
     assert bond.nominatedOwner() == deployer
 
 
-# def test_reset(preCommit, deployer, user):
-#     with brownie.reverts("not owner"):
-#         preCommit.reset({"from": user})
+def test_reset(preCommit, deployer, user):
+    with brownie.reverts("not owner"):
+        preCommit.reset({"from": user})
 
-#     preCommit.reset({"from": deployer})
+    preCommit.reset({"from": deployer})
 
-#     assert not preCommit.started()
+    assert not preCommit.started()
 
-#     with brownie.reverts("not started"):
-#         preCommit.reset({"from": deployer})
+    with brownie.reverts("not started"):
+        preCommit.reset({"from": deployer})
 
 
 def test_recover(deployer, user, preCommit, payoutToken):
