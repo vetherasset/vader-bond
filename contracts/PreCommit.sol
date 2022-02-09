@@ -5,9 +5,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./interfaces/IVaderBond.sol";
+import "./interfaces/IPreCommit.sol";
 import "./Ownable.sol";
 
-contract PreCommit is Ownable {
+contract PreCommit is IPreCommit, Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint;
 
@@ -64,7 +65,7 @@ contract PreCommit is Ownable {
         return commits.length;
     }
 
-    function commit(uint _amount) external notStarted {
+    function commit(uint _amount) external override notStarted {
         require(commits.length < maxCommits, "commits > max");
         require(_amount >= minAmountIn, "amount < min");
         require(_amount <= maxAmountIn, "amount > max");
@@ -76,8 +77,8 @@ contract PreCommit is Ownable {
     }
 
     function uncommit(uint _index) external notStarted {
-        Commit memory commit = commits[_index];
-        require(commit.depositor == msg.sender, "not depositor");
+        Commit memory _commit = commits[_index];
+        require(_commit.depositor == msg.sender, "not depositor");
 
         // replace commits[index] with last commit
         uint last = commits.length.sub(1);
@@ -86,8 +87,8 @@ contract PreCommit is Ownable {
         }
         commits.pop();
 
-        total = total.sub(commit.amount);
-        tokenIn.safeTransfer(msg.sender, commit.amount);
+        total = total.sub(_commit.amount);
+        tokenIn.safeTransfer(msg.sender, _commit.amount);
     }
 
     // NOTE: total debt >= Bond.payoutFor(maxAmountIn * maxCommits)
