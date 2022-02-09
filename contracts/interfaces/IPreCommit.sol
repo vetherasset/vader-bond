@@ -2,5 +2,5 @@
 pragma solidity 0.7.6;
 
 interface IPreCommit {
-    function commit(uint _amount) external;
+    function commit(address _from, uint _amount) external;
 }

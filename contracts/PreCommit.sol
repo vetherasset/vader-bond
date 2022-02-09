@@ -65,14 +65,14 @@ contract PreCommit is IPreCommit, Ownable {
         return commits.length;
     }
 
-    function commit(uint _amount) external override notStarted {
+    function commit(address _from, uint _amount) external override notStarted {
         require(commits.length < maxCommits, "commits > max");
         require(_amount >= minAmountIn, "amount < min");
         require(_amount <= maxAmountIn, "amount > max");
 
-        tokenIn.safeTransferFrom(msg.sender, address(this), _amount);
+        tokenIn.safeTransferFrom(_from, address(this), _amount);
 
-        commits.push(Commit({amount: _amount, depositor: msg.sender}));
+        commits.push(Commit({amount: _amount, depositor: _from}));
         total = total.add(_amount);
     }
 
