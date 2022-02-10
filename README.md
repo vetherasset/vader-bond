@@ -70,7 +70,7 @@ env $(cat .env) ACCOUNT=dev brownie run scripts/deploy_vader_bond.py --network k
 -   Vader: 0x2602278EE1882889B946eb11DC0E810075650983
 -   VaderBond - Uniswap V2 ETH LP: 0x1B96d82b8b13C75d4cE347a53284B10d93B63684
 -   ZapUniswapV2EthLp: 0x781B2844605298FB45C653Dc1EF0d0b941293323
--   VaderBond - ETH:
+-   VaderBond - WETH:
 -   ZapEth:
 
 ##### Kovan
@@ -80,8 +80,10 @@ env $(cat .env) ACCOUNT=dev brownie run scripts/deploy_vader_bond.py --network k
 -   Vader: 0xB46dbd07ce34813623FB0643b21DCC8D0268107D
 -   VaderBond - Uniswap V2 ETH LP: 0xd932cc11F49df7638999E2a313e5808667363750
 -   ZapUniswapV2EthLp: 0x6D51Ef96C362fdea02c61Ce2dD1A263B5ABbd4B9
--   VaderBond - ETH: 0xA8ac19C394783EAcDD36e53686Db037715c87fcD
+-   VaderBond - WETH: 0xA8ac19C394783EAcDD36e53686Db037715c87fcD
 -   ZapEth: 0x05191774a53c629d9c9ea90e3D4BC54b6863Fd60
+-   PreCommit: 0xc2BB0EE1f78cC83317727edCC7FDfc1CaF808d0F
+-   ZapEthToPreCommit: 0x1B3B835C0f7d355CBb02232624dB59ea8Cea0d48
 
 ##### Rinkeby
 

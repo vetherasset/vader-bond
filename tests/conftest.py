@@ -5,7 +5,9 @@ from brownie import (
     Treasury,
     VaderBond,
     PreCommit,
+    ZapEthToPreCommit,
     ZapUniswapV2EthLp,
+    WETH,
     TestPausable,
     TestToken,
     TestVader,
@@ -65,11 +67,29 @@ def preCommit(deployer, bond, principalToken):
     )
 
 
-WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+@pytest.fixture(scope="module")
+def preCommitWeth(deployer, bond, weth):
+    max_commits = 50
+    min_amount_in = 0.01 * 10 ** 18
+    max_amount_in = 10 * 10 ** 18
+    yield PreCommit.deploy(
+        bond,
+        weth,
+        max_commits,
+        min_amount_in,
+        max_amount_in,
+        {"from": deployer},
+    )
+
+
+@pytest.fixture(scope="module")
+def zapEthToPreCommit(deployer, weth, preCommitWeth):
+    yield ZapEthToPreCommit.deploy(weth, preCommitWeth, {"from": deployer})
 
 
 @pytest.fixture(scope="module")
 def zapUniswapV2EthLp(deployer, router, pair, payoutToken, bond):
+    WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
     yield ZapUniswapV2EthLp.deploy(
         WETH, router, pair, payoutToken, bond, {"from": deployer}
     )
@@ -84,6 +104,11 @@ def payoutToken(deployer):
 @pytest.fixture(scope="module")
 def principalToken(deployer):
     yield TestToken.deploy("PRINCIPAL TOKEN", "PRINCIPAL", 18, {"from": deployer})
+
+
+@pytest.fixture(scope="module")
+def weth(deployer):
+    yield WETH.deploy({"from": deployer})
 
 
 # alias
