@@ -12,7 +12,10 @@ contract PreCommit is IPreCommit, Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint;
 
-    struct Commit {
+    event Commit(address indexed depositor, uint amount, uint index);
+    event UnCommit(address indexed depositor, uint index, uint last);
+
+    struct CommitStruct {
         uint amount;
         address depositor;
     }
@@ -26,7 +29,7 @@ contract PreCommit is IPreCommit, Ownable {
     uint public total;
     // true if bond was initialized
     bool public started;
-    Commit[] public commits;
+    CommitStruct[] public commits;
 
     constructor(
         address _bond,
@@ -77,16 +80,18 @@ contract PreCommit is IPreCommit, Ownable {
 
         tokenIn.safeTransferFrom(msg.sender, address(this), _amount);
 
-        commits.push(Commit({amount: _amount, depositor: _depositor}));
+        commits.push(CommitStruct({amount: _amount, depositor: _depositor}));
         total = total.add(_amount);
+
+        emit Commit(_depositor, _amount, commits.length - 1);
     }
 
     function uncommit(uint _index) external notStarted {
-        Commit memory _commit = commits[_index];
+        CommitStruct memory _commit = commits[_index];
         require(_commit.depositor == msg.sender, "not depositor");
 
         // replace commits[index] with last commit
-        uint last = commits.length.sub(1);
+        uint last = commits.length - 1;
         if (_index != last) {
             commits[_index] = commits[last];
         }
@@ -94,6 +99,8 @@ contract PreCommit is IPreCommit, Ownable {
 
         total = total.sub(_commit.amount);
         tokenIn.safeTransfer(msg.sender, _commit.amount);
+
+        emit UnCommit(msg.sender, _index, last);
     }
 
     // NOTE: total debt >= Bond.payoutFor(maxAmountIn * maxCommits)
@@ -118,7 +125,7 @@ contract PreCommit is IPreCommit, Ownable {
 
         tokenIn.approve(address(bond), type(uint).max);
 
-        Commit[] memory _commits = commits;
+        CommitStruct[] memory _commits = commits;
         uint l = commits.length;
         for (uint i; i < l; i++) {
             bond.deposit(_commits[i].amount, _minPrice, _commits[i].depositor);
