@@ -70,8 +70,12 @@ env $(cat .env) ACCOUNT=dev brownie run scripts/deploy_vader_bond.py --network k
 -   Vader: 0x2602278EE1882889B946eb11DC0E810075650983
 -   VaderBond - Uniswap V2 ETH LP: 0x1B96d82b8b13C75d4cE347a53284B10d93B63684
 -   ZapUniswapV2EthLp: 0x781B2844605298FB45C653Dc1EF0d0b941293323
--   VaderBond - WETH:
--   ZapEth:
+-   VaderBond - WETH - short term: 0x74876acb3D2a007687c285B5A75A0d7b470B3D69
+-   VaderBond - WETH - long term: 0xbea19c6AB7F5C90481147Ad69Ff0De2Dba879b5C
+-   PreCommit - WETH - short term: 0x0c6ad91DD183f953389D0bf5687025340a19E6e0
+-   PreCommit - WETH - long term: 0x3db19DE4263284c957B09efe53Cb0e7042228C59
+-   ZapEthToPreCommit - WETH - short term: 0xdfdbeFa9A5E93a369cd0fCcA7820C5C5caB3082f
+-   ZapEthToPreCommit - WETH - long term: 0xD936219f3acA9CA1fa675aA69752FaD2BE85A90a
 
 ##### Kovan
 

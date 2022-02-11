@@ -21,7 +21,7 @@ CONTRACTS = {
         # Uniswap ETH - Vader LP
         # "principal": "0x452c60e1E3Ae0965Cd27dB1c7b3A525d197Ca0Aa",
         # WETH
-        "principal": "",
+        "principal": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
     },
 }
 
