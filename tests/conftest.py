@@ -54,30 +54,18 @@ def bond(deployer, treasury, payoutToken, principalToken):
 
 @pytest.fixture(scope="module")
 def preCommit(deployer, bond, principalToken):
-    max_commits = 50
-    min_amount_in = 0.01 * 10 ** 18
-    max_amount_in = 10 * 10 ** 18
     yield PreCommit.deploy(
         bond,
         principalToken,
-        max_commits,
-        min_amount_in,
-        max_amount_in,
         {"from": deployer},
     )
 
 
 @pytest.fixture(scope="module")
 def preCommitWeth(deployer, bond, weth):
-    max_commits = 50
-    min_amount_in = 0.01 * 10 ** 18
-    max_amount_in = 10 * 10 ** 18
     yield PreCommit.deploy(
         bond,
         weth,
-        max_commits,
-        min_amount_in,
-        max_amount_in,
         {"from": deployer},
     )
 

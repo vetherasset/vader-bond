@@ -12,14 +12,29 @@ def test_constructor(deployer, preCommit, bond, tokenIn):
     assert preCommit.owner() == deployer
     assert preCommit.bond() == bond
     assert preCommit.tokenIn() == tokenIn
+    assert preCommit.maxCommits() == 0
+    assert preCommit.minAmountIn() == 0
+    assert preCommit.maxAmountIn() == 0
+    assert preCommit.total() == 0
+    assert not preCommit.open()
+
+
+def test_start(preCommit, deployer, user):
+    with brownie.reverts("not owner"):
+        preCommit.start(MAX_COMMITS, MIN_AMOUNT_IN, MAX_AMOUNT_IN, {"from": user})
+
+    preCommit.start(MAX_COMMITS, MIN_AMOUNT_IN, MAX_AMOUNT_IN, {"from": deployer})
+
+    assert preCommit.open()
     assert preCommit.maxCommits() == MAX_COMMITS
     assert preCommit.minAmountIn() == MIN_AMOUNT_IN
     assert preCommit.maxAmountIn() == MAX_AMOUNT_IN
-    assert preCommit.total() == 0
-    assert not preCommit.started()
+
+    with brownie.reverts("not closed"):
+        preCommit.start(MAX_COMMITS, MIN_AMOUNT_IN, MAX_AMOUNT_IN, {"from": deployer})
 
 
-def test_commit(preCommit, tokenIn, user):
+def test_commit(preCommit, tokenIn, deployer, user):
     with brownie.reverts("depositor = zero address"):
         preCommit.commit(ZERO_ADDRESS, MIN_AMOUNT_IN, {"from": user})
 
@@ -119,7 +134,7 @@ def test_init(preCommit, bond, treasury, vader, tokenIn, deployer, user, account
         {"from": deployer},
     )
 
-    assert preCommit.started()
+    assert not preCommit.open()
     assert preCommit.total() == 0
     assert preCommit.count() == 0
     assert tokenIn.balanceOf(preCommit) == 0
@@ -134,7 +149,7 @@ def test_init(preCommit, bond, treasury, vader, tokenIn, deployer, user, account
         assert bond_info["vesting"] == vesting_term
         assert bond_info["lastBlock"] == tx.block_number
 
-    with brownie.reverts("started"):
+    with brownie.reverts("not open"):
         preCommit.init(
             control_var,
             vesting_term,
@@ -145,12 +160,12 @@ def test_init(preCommit, bond, treasury, vader, tokenIn, deployer, user, account
             {"from": deployer},
         )
 
-    # test cannot commit after start
-    with brownie.reverts("started"):
+    # test cannot commit after init
+    with brownie.reverts("not open"):
         preCommit.commit(user, MIN_AMOUNT_IN, {"from": user})
 
-    # test cannot uncommit after start
-    with brownie.reverts("started"):
+    # test cannot uncommit after init
+    with brownie.reverts("not open"):
         preCommit.uncommit(0, {"from": user})
 
 
@@ -161,18 +176,6 @@ def test_nominate_bond_owner(preCommit, bond, deployer, user):
     preCommit.nominateBondOwner({"from": deployer})
 
     assert bond.nominatedOwner() == deployer
-
-
-def test_reset(preCommit, deployer, user):
-    with brownie.reverts("not owner"):
-        preCommit.reset({"from": user})
-
-    preCommit.reset({"from": deployer})
-
-    assert not preCommit.started()
-
-    with brownie.reverts("not started"):
-        preCommit.reset({"from": deployer})
 
 
 def test_recover(deployer, user, preCommit, payoutToken):

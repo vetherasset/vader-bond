@@ -22,25 +22,43 @@ contract PreCommit is IPreCommit, Ownable {
 
     IVaderBond public immutable bond;
     IERC20 public immutable tokenIn;
-    uint public immutable maxCommits;
-    uint public immutable minAmountIn;
-    uint public immutable maxAmountIn;
+    uint public maxCommits;
+    uint public minAmountIn;
+    uint public maxAmountIn;
 
+    // total amount commited
     uint public total;
-    // true if bond was initialized
-    bool public started;
+    // open for users to commit
+    bool public open;
     CommitStruct[] public commits;
 
-    constructor(
-        address _bond,
-        address _tokenIn,
+    constructor(address _bond, address _tokenIn) {
+        bond = IVaderBond(_bond);
+        tokenIn = IERC20(_tokenIn);
+    }
+
+    modifier isOpen() {
+        require(open, "not open");
+        _;
+    }
+
+    modifier isClosed() {
+        require(!open, "not closed");
+        _;
+    }
+
+    function count() external view returns (uint) {
+        return commits.length;
+    }
+
+    function start(
         uint _maxCommits,
         uint _minAmountIn,
         uint _maxAmountIn
-    ) {
+    ) external onlyOwner isClosed {
         require(_maxAmountIn >= _minAmountIn, "min > max");
-        bond = IVaderBond(_bond);
-        tokenIn = IERC20(_tokenIn);
+
+        open = true;
         // a = amount to commit
         // v = treasury.valueOf(a)
         // p = bond.payoutFor(v)
@@ -54,25 +72,7 @@ contract PreCommit is IPreCommit, Ownable {
         maxAmountIn = _maxAmountIn;
     }
 
-    modifier notStarted() {
-        require(!started, "started");
-        _;
-    }
-
-    function reset() external onlyOwner {
-        require(started, "not started");
-        started = false;
-    }
-
-    function count() external view returns (uint) {
-        return commits.length;
-    }
-
-    function commit(address _depositor, uint _amount)
-        external
-        override
-        notStarted
-    {
+    function commit(address _depositor, uint _amount) external override isOpen {
         require(commits.length < maxCommits, "commits > max");
         require(_depositor != address(0), "depositor = zero address");
         require(_amount >= minAmountIn, "amount < min");
@@ -86,7 +86,7 @@ contract PreCommit is IPreCommit, Ownable {
         emit Commit(_depositor, _amount, commits.length - 1);
     }
 
-    function uncommit(uint _index) external notStarted {
+    function uncommit(uint _index) external isOpen {
         CommitStruct memory _commit = commits[_index];
         require(_commit.depositor == msg.sender, "not depositor");
 
@@ -111,8 +111,8 @@ contract PreCommit is IPreCommit, Ownable {
         uint _maxPayout,
         uint _maxDebt,
         uint _initialDebt
-    ) external onlyOwner notStarted {
-        started = true;
+    ) external onlyOwner isOpen {
+        open = false;
 
         bond.initialize(
             _controlVariable,
@@ -126,8 +126,8 @@ contract PreCommit is IPreCommit, Ownable {
         tokenIn.approve(address(bond), type(uint).max);
 
         CommitStruct[] memory _commits = commits;
-        uint l = commits.length;
-        for (uint i; i < l; i++) {
+        uint len = commits.length;
+        for (uint i; i < len; i++) {
             bond.deposit(_commits[i].amount, _minPrice, _commits[i].depositor);
         }
 
