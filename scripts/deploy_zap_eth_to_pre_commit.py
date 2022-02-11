@@ -4,7 +4,7 @@ import os
 CONTRACTS = {
     "kovan": {
         "weth": "0xd0A1E359811322d97991E03f863a0C30C2cF029C",
-        "preCommit": "0xc2BB0EE1f78cC83317727edCC7FDfc1CaF808d0F",
+        "preCommit": "0x4D9db98d2914C15Ee0295F23cE9CB37626a89b36",
     },
     "mainnet": {
         "weth": "",

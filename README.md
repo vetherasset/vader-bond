@@ -82,8 +82,8 @@ env $(cat .env) ACCOUNT=dev brownie run scripts/deploy_vader_bond.py --network k
 -   ZapUniswapV2EthLp: 0x6D51Ef96C362fdea02c61Ce2dD1A263B5ABbd4B9
 -   VaderBond - WETH: 0xA8ac19C394783EAcDD36e53686Db037715c87fcD
 -   ZapEth: 0x05191774a53c629d9c9ea90e3D4BC54b6863Fd60
--   PreCommit: 0xc2BB0EE1f78cC83317727edCC7FDfc1CaF808d0F
--   ZapEthToPreCommit: 0x1B3B835C0f7d355CBb02232624dB59ea8Cea0d48
+-   PreCommit: 0x4D9db98d2914C15Ee0295F23cE9CB37626a89b36
+-   ZapEthToPreCommit: 0xA23B68d6C651db60145aB47d9E4790Ab13a62a29
 
 ##### Rinkeby
 
