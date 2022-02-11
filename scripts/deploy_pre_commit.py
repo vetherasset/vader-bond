@@ -4,18 +4,16 @@ import os
 ARGS = {
     "rinkeby": {
         "bond": "0x0A23bde5E3930EfEaa546A4b4F10a1b7A9cC1e6C",
-        "token_in": "0xE8bD273f54a990007b1069a15b66B584abc86e04",
-        "max_commits": 100,
-        "min_amount_in": 0.01 * 10 ** 18,
-        "max_amount_in": 10 * 10 ** 18,
+        "tokenIn": "0xE8bD273f54a990007b1069a15b66B584abc86e04",
+    },
+    "kovan": {
+        "bond": "0xA8ac19C394783EAcDD36e53686Db037715c87fcD",
+        "tokenIn": "0xd0A1E359811322d97991E03f863a0C30C2cF029C",
     },
     "mainnet": {
         # TODO: params
         "bond": "",
-        "token_in": "",
-        "max_commits": 100,
-        "min_amount_in": 0,
-        "max_amount_in": 0,
+        "tokenIn": "",
     },
 }
 
@@ -29,10 +27,7 @@ def main():
 
     PreCommit.deploy(
         args["bond"],
-        args["token_in"],
-        args["max_commits"],
-        args["min_amount_in"],
-        args["max_amount_in"],
+        args["tokenIn"],
         {"from": account},
         publish_source=True,
     )
