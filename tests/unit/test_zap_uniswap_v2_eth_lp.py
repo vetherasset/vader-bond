@@ -1,12 +1,12 @@
 import brownie
-from brownie import ZERO_ADDRESS, VaderBond, ZapEth
+from brownie import ZERO_ADDRESS, VaderBond, ZapUniswapV2EthLp
 
 
 WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 
 
-def test_constructor(deployer, zapEth, router, pair, vader, bond):
-    zap = zapEth
+def test_constructor(deployer, zapUniswapV2EthLp, router, pair, vader, bond):
+    zap = zapUniswapV2EthLp
 
     assert zap.WETH() == WETH
     assert zap.router() == router
@@ -19,8 +19,8 @@ def test_constructor(deployer, zapEth, router, pair, vader, bond):
     assert pair.allowance(zap, bond) == 2 ** 256 - 1
 
 
-def test_pause(deployer, user, zapEth):
-    zap = zapEth
+def test_pause(deployer, user, zapUniswapV2EthLp):
+    zap = zapUniswapV2EthLp
 
     with brownie.reverts("not owner"):
         zap.pause({"from": user})
@@ -34,8 +34,8 @@ def test_pause(deployer, user, zapEth):
         zap.pause({"from": deployer})
 
 
-def test_unpause(deployer, user, zapEth):
-    zap = zapEth
+def test_unpause(deployer, user, zapUniswapV2EthLp):
+    zap = zapUniswapV2EthLp
 
     with brownie.reverts("not owner"):
         zap.unpause({"from": user})
@@ -75,7 +75,7 @@ def test_zap(deployer, router, pair, vader, treasury, user):
     treasury.setBondContract(bond, True, {"from": deployer})
     treasury.setMaxPayout(bond, MAX_DEBT, {"from": deployer})
 
-    zap = ZapEth.deploy(WETH, router, pair, vader, bond, {"from": deployer})
+    zap = ZapUniswapV2EthLp.deploy(WETH, router, pair, vader, bond, {"from": deployer})
 
     vader.mint(treasury, MAX_DEBT)
     eth_in = 1e18
@@ -118,8 +118,8 @@ def test_zap(deployer, router, pair, vader, treasury, user):
     assert bond_info["lastBlock"] == tx.block_number
 
 
-def test_recover(deployer, zapEth, vader, user):
-    zap = zapEth
+def test_recover(deployer, zapUniswapV2EthLp, vader, user):
+    zap = zapUniswapV2EthLp
 
     with brownie.reverts("not owner"):
         zap.recover(ZERO_ADDRESS, {"from": user})

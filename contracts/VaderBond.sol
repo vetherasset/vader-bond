@@ -121,7 +121,7 @@ contract VaderBond is IVaderBond, Ownable, ReentrancyGuard {
         uint _maxPayout,
         uint _maxDebt,
         uint _initialDebt
-    ) external onlyOwner {
+    ) external override onlyOwner {
         require(currentDebt() == 0, "debt > 0");
 
         require(_controlVariable > 0, "cv = 0");

@@ -1,14 +1,14 @@
-from brownie import ZapEth, accounts, network
+from brownie import ZapEthToPreCommit, accounts, network
 import os
 
 CONTRACTS = {
     "kovan": {
         "weth": "0xd0A1E359811322d97991E03f863a0C30C2cF029C",
-        "bond": "0xA8ac19C394783EAcDD36e53686Db037715c87fcD",
+        "preCommit": "0x4D9db98d2914C15Ee0295F23cE9CB37626a89b36",
     },
     "mainnet": {
         "weth": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-        "bond": "",
+        "preCommit": "0x3db19DE4263284c957B09efe53Cb0e7042228C59",
     },
 }
 
@@ -20,9 +20,9 @@ def main():
     net = network.show_active()
     contracts = CONTRACTS[net]
 
-    ZapEth.deploy(
+    ZapEthToPreCommit.deploy(
         contracts["weth"],
-        contracts["bond"],
+        contracts["preCommit"],
         {"from": account},
         publish_source=True,
     )

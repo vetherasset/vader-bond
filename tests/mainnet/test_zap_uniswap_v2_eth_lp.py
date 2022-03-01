@@ -1,5 +1,5 @@
 import brownie
-from brownie import ZapEth, VaderBond, Treasury
+from brownie import ZapUniswapV2EthLp, VaderBond, Treasury
 import pytest
 
 ## Terms
@@ -17,7 +17,7 @@ WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 ROUTER = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 
 
-def test_zap_eth(deployer, lp, vader, vader_whale, user):
+def test_zap_uniswap_v2_eth_lp(deployer, lp, vader, vader_whale, user):
     treasury = Treasury.deploy(vader, {"from": deployer})
     bond = VaderBond.deploy(treasury, vader, lp, {"from": deployer})
 
@@ -35,7 +35,7 @@ def test_zap_eth(deployer, lp, vader, vader_whale, user):
         {"from": deployer},
     )
 
-    zap = ZapEth.deploy(WETH, ROUTER, lp, vader, bond, {"from": deployer})
+    zap = ZapUniswapV2EthLp.deploy(WETH, ROUTER, lp, vader, bond, {"from": deployer})
 
     # eth_in = zap.calculateSwapInAmount(88705347675249280153804878, 1e18)
     # print(eth_in, eth_in <= 1e18)

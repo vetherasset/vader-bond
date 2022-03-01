@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.7.6;
 
-contract Ownable {
+import "./interfaces/IOwnable.sol";
+
+contract Ownable is IOwnable {
     event OwnerNominated(address newOwner);
     event OwnerChanged(address newOwner);
 
@@ -17,12 +19,12 @@ contract Ownable {
         _;
     }
 
-    function nominateNewOwner(address _owner) external onlyOwner {
+    function nominateNewOwner(address _owner) external override onlyOwner {
         nominatedOwner = _owner;
         emit OwnerNominated(_owner);
     }
 
-    function acceptOwnership() external {
+    function acceptOwnership() external override {
         require(msg.sender == nominatedOwner, "not nominated");
 
         owner = msg.sender;

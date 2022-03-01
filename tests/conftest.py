@@ -4,7 +4,11 @@ from brownie import (
     Ownable,
     Treasury,
     VaderBond,
-    ZapEth,
+    PreCommit,
+    ZapEthToPreCommit,
+    ZapUniswapV2EthLp,
+    WETH,
+    TestPausable,
     TestToken,
     TestVader,
     MockRouter,
@@ -34,6 +38,11 @@ def ownable(deployer):
 
 
 @pytest.fixture(scope="module")
+def pausable(deployer):
+    yield TestPausable.deploy({"from": deployer})
+
+
+@pytest.fixture(scope="module")
 def treasury(deployer, payoutToken):
     yield Treasury.deploy(payoutToken, {"from": deployer})
 
@@ -43,12 +52,43 @@ def bond(deployer, treasury, payoutToken, principalToken):
     yield VaderBond.deploy(treasury, payoutToken, principalToken, {"from": deployer})
 
 
-WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+@pytest.fixture(scope="module")
+def preCommit(deployer, bond, principalToken):
+    yield PreCommit.deploy(
+        bond,
+        principalToken,
+        {"from": deployer},
+    )
 
 
 @pytest.fixture(scope="module")
-def zapEth(deployer, router, pair, payoutToken, bond):
-    yield ZapEth.deploy(WETH, router, pair, payoutToken, bond, {"from": deployer})
+def preCommitWeth(deployer, bond, weth):
+    preCommit = PreCommit.deploy(
+        bond,
+        weth,
+        {"from": deployer},
+    )
+
+    max_commits = 50
+    min_amount_in = int(0.01 * 10 ** 18)
+    max_amount_in = int(10 * 10 ** 18)
+
+    preCommit.start(max_commits, min_amount_in, max_amount_in, {"from": deployer})
+
+    yield preCommit
+
+
+@pytest.fixture(scope="module")
+def zapEthToPreCommit(deployer, weth, preCommitWeth):
+    yield ZapEthToPreCommit.deploy(weth, preCommitWeth, {"from": deployer})
+
+
+@pytest.fixture(scope="module")
+def zapUniswapV2EthLp(deployer, router, pair, payoutToken, bond):
+    WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+    yield ZapUniswapV2EthLp.deploy(
+        WETH, router, pair, payoutToken, bond, {"from": deployer}
+    )
 
 
 # test contracts
@@ -62,10 +102,20 @@ def principalToken(deployer):
     yield TestToken.deploy("PRINCIPAL TOKEN", "PRINCIPAL", 18, {"from": deployer})
 
 
+@pytest.fixture(scope="module")
+def weth(deployer):
+    yield WETH.deploy({"from": deployer})
+
+
 # alias
 @pytest.fixture(scope="module")
 def vader(payoutToken):
     yield payoutToken
+
+
+@pytest.fixture(scope="module")
+def tokenIn(principalToken):
+    yield principalToken
 
 
 @pytest.fixture(scope="module")

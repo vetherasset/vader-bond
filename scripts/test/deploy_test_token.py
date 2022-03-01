@@ -6,6 +6,6 @@ def main():
     print(f"account: {account}")
 
     net = network.show_active()
-    assert net == "kovan"
+    assert net in ["kovan", "rinkeby"]
 
     TestToken.deploy("test", "TEST", 18, {"from": account}, publish_source=True)

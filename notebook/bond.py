@@ -9,7 +9,7 @@
 # !pip install prettytable
 
 
-# In[2]:
+# In[1]:
 
 
 from datetime import datetime
@@ -157,7 +157,7 @@ class Bond:
         return payout
 
 
-# In[3]:
+# In[16]:
 
 
 import math
@@ -166,25 +166,26 @@ import json
 BLOCKS_PER_HOUR = 270
 VADER_TOTAL_SUPPLY = (25 * 1e9) * 10 ** DECIMALS
 SALE = 50 * (1e6) * (10 ** DECIMALS)
+VESTING_DAYS = 21
 
-LP_PRICE_USD = 29.23
-VADER_PRICE_USD = 0.056
-DISCOUNT = 0.92
+TOKEN_PRICE_USD = 3000.00
+VADER_PRICE_USD = 0.055
+DISCOUNT = 0.90
 MAX_USD = 5 * 1e5
-MAX_LP_PER_DEPOSIT = MAX_USD / LP_PRICE_USD * 10 ** PRINCIPAL_DECIMALS
+MAX_TOKEN_PER_DEPOSIT = MAX_USD / TOKEN_PRICE_USD * 10 ** PRINCIPAL_DECIMALS
 
 # --- min price ---
-# amount of VADER to receive per LP
-v = LP_PRICE_USD / (VADER_PRICE_USD * DISCOUNT)
+# amount of VADER to receive per token
+v = TOKEN_PRICE_USD / (VADER_PRICE_USD * DISCOUNT)
 
-# amount of LP to buy 1 Vader
+# amount of token to buy 1 Vader
 x = 1 / v
 min_price = x * 10 ** PRINCIPAL_DECIMALS
 
 # --- control variable ---
 # bond price = control variable * debt ratio / 1e18
 # debt ratio = current debt * 1e18 / total supply of Vader
-# current debt <= total amount of LP to receive
+# current debt <= total amount of token to receive
 # 
 # cv = control variable
 # V = total supply of Vader
@@ -196,16 +197,16 @@ min_price = x * 10 ** PRINCIPAL_DECIMALS
 #
 # min bond price <= cv * D / V
 #
-# initial amount of LP to receive before bond price exceeds min price
+# initial amount of token to receive before bond price exceeds min price
 D = min_price * SALE / 10 ** DECIMALS
 # cv = Vader total supply / SALE
 control_variable = min_price * VADER_TOTAL_SUPPLY / D
 
 # --- vesting terms ---
-vesting_terms = BLOCKS_PER_HOUR * 24 * 21
+vesting_terms = BLOCKS_PER_HOUR * 24 * VESTING_DAYS
 
 # --- max payout % (100% = 1e5) ---
-max_payout = math.ceil(MAX_LP_PER_DEPOSIT * v / VADER_TOTAL_SUPPLY * 1e5)
+max_payout = math.ceil(MAX_TOKEN_PER_DEPOSIT * v / VADER_TOTAL_SUPPLY * 1e5)
 
 # --- max debt ---
 max_debt = SALE
@@ -228,14 +229,14 @@ adj = {
     "last_block": 0
 }
 
-print("Max LP per deposit:", MAX_LP_PER_DEPOSIT / 10 ** PRINCIPAL_DECIMALS)
-print("Min LP before price > min price:", D / 10 ** PRINCIPAL_DECIMALS)
+print("Max token per deposit:", MAX_TOKEN_PER_DEPOSIT / 10 ** PRINCIPAL_DECIMALS)
+print("Min token before price > min price:", D / 10 ** PRINCIPAL_DECIMALS)
 print("Min price:", terms["min_price"] / 10 ** PRINCIPAL_DECIMALS)
 print("Price:", terms["control_variable"] * D / VADER_TOTAL_SUPPLY / 10 ** PRINCIPAL_DECIMALS)
 print("terms:", json.dumps(terms, indent=2))
 
 
-# In[5]:
+# In[17]:
 
 
 block = Block()
@@ -281,7 +282,7 @@ for i in range(N):
     
     if sold < SALE and random() > 0.9 and b.bond_price() <= 1.05 * market_price:
         r = random()
-        amount = r * MAX_LP_PER_DEPOSIT
+        amount = r * MAX_TOKEN_PER_DEPOSIT
         value = treasury.value_of_token(amount)
         payout = b.payout_for(value)
         
